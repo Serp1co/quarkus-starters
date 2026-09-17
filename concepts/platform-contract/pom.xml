@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>platform-contract</artifactId>
+  <name>Concept: platform contract</name>
+  <description>
+    The configuration contract between a developer and the platform (design note 2.2): export of the keys
+    declared through @ConfigMapping, echo of which config source served each key at runtime, and the lint
+    that keeps environment-specific values out of the artifact (design note 2.1). Plain Java, no Quarkus
+    dependency, shared by every POC. Candidate content for a bdi-quarkus-* internal extension.
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.smallrye.config</groupId>
+      <artifactId>smallrye-config-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Not a Quarkus application: no JBoss LogManager on the test classpath, so the inherited setting is dropped -->
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables combine.self="override">
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

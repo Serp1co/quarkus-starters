@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>poc-a-jakarta-classic</artifactId>
+  <name>POC A: Jakarta classic</name>
+  <description>
+    Migration class A (design note 4.1): JAX-RS, CDI, JPA, JTA and Bean Validation moved from JBoss EAP to
+    the Red Hat build of Quarkus (Quarkus REST, ArC, Hibernate ORM, Narayana, Hibernate Validator).
+  </description>
+
+  <dependencies>
+    <!-- ===== What the developer wrote against: the Jakarta EE APIs already used on EAP. RHBQ-supported. ===== -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest</artifactId>                <!-- JAX-RS (Jakarta REST) -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-jackson</artifactId>        <!-- JSON binding for REST -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>                 <!-- CDI -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-orm</artifactId>       <!-- JPA (Jakarta Persistence) -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-narayana-jta</artifactId>        <!-- JTA: @Transactional on CDI beans -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-validator</artifactId> <!-- Bean Validation -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>     <!-- JDBC driver: the one build-time choice the bank makes -->
+    </dependency>
+
+    <!-- ===== Platform baseline: what the bdi-quarkus-* internal extensions will inject (design note 2.3). RHBQ-supported. ===== -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>     <!-- /q/health/ready gates the rolling update -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-logging-json</artifactId>        <!-- JSON to stdout, captured by journald / podman / OpenShift Logging -->
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>    <!-- API contract at /q/openapi -->
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>platform-contract</artifactId>           <!-- config contract + conformance echo (this repository) -->
+    </dependency>
+
+    <!-- ===== Tests ===== -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

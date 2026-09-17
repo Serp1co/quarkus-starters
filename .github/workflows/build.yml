@@ -1,0 +1,22 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    name: Build and test against the Red Hat build of Quarkus
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      # RHBQ artifacts come from maven.repository.redhat.com (declared in the root pom, 'rhbq' profile).
+      # Dev Services start PostgreSQL in Docker for the tests; -DskipITs=false also runs the
+      # @QuarkusIntegrationTest classes against the packaged fast-jar.
+      - name: Verify
+        run: ./mvnw -B -ntp verify -DskipITs=false
