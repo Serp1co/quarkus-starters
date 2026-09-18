@@ -30,6 +30,9 @@ class SettlementServiceTest {
     @Inject
     it.bancaditalia.quarkus.poc.ejb.service.SettlementBatch batch;
 
+    @Inject
+    it.bancaditalia.quarkus.poc.ejb.repository.SettlementRunRepository runs;
+
     @Test
     void aPoisonInstructionRollsBackItsBatchAndTheOthersAreRetriedAlone() {
         String tag = UUID.randomUUID().toString().substring(0, 6);
@@ -53,14 +56,17 @@ class SettlementServiceTest {
 
         SettlementRun run = settlement.runNow(); // %test batch-size is 1: one transaction per instruction
 
+        // The 2 s test timer may have taken some of the three before this run did (the pessimistic lock makes
+        // the two runs share the work, never duplicate it): the outcomes below hold whichever run settled what.
         assertNotNull(run.getId());
-        assertTrue(run.getSettled() >= 1);
-        assertTrue(run.getRejected() >= 1);
-        assertTrue(run.getFailed() >= 1);
-        assertEquals(Instruction.Status.SETTLED, instructions.find(ok.getId()).orElseThrow().getStatus());
+        assertTrue(run.getFailed() >= 1, "the poison instruction fails every run it is offered to");
+        Instruction settled = instructions.find(ok.getId()).orElseThrow();
+        assertEquals(Instruction.Status.SETTLED, settled.getStatus());
         assertEquals(Instruction.Status.REJECTED, instructions.find(big.getId()).orElseThrow().getStatus());
         assertEquals(Instruction.Status.PENDING, instructions.find(err.getId()).orElseThrow().getStatus()); // rolled back
-        assertEquals(run.getId(), instructions.find(ok.getId()).orElseThrow().getRunId());
+        SettlementRun settlingRun = runs.findAll().stream().filter(r -> r.getId().equals(settled.getRunId())).findFirst().orElseThrow();
+        assertTrue(settlingRun.getSettled() >= 1, "the run that settled OK counted it");
+        assertTrue(settlingRun.getFinishedAt() != null, "that run was committed although one of its batches failed");
 
         Instant deadline = Instant.now().plus(Duration.ofSeconds(5));
         while (notifier.sent().size() <= before && Instant.now().isBefore(deadline)) {
