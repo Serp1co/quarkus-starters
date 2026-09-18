@@ -10,8 +10,9 @@
     fail_msg: "bdi_app is required (survey field of the job template)"
   tags: [always]
 
+# Rendering is controller-side and cheap, and every other step needs its result: it always runs.
 - ansible.builtin.import_tasks: render.yml
-  tags: [render, validate, install]
+  tags: [always]
 
 - name: Version and artifact, from the survey or from the release fragment
   ansible.builtin.set_fact:
