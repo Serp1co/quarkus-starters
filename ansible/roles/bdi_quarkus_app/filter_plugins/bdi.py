@@ -7,6 +7,7 @@ ${fromvault.<scope>.<NAME>} placeholder to the secrets file, and check the resul
 META-INF/config-contract.json before anything touches a host.
 """
 import re
+from decimal import Decimal
 
 from ansible.errors import AnsibleFilterError
 
@@ -80,7 +81,7 @@ def _file(fragment):
     return fragment.get("_file", fragment.get("kind", "fragment"))
 
 
-def _translate_datasource(fragment, warnings):
+def _translate_datasource(fragment, warnings, platform):
     name = fragment.get("name", "default")
     file = _file(fragment)
     jdbc, ds = {}, {}
@@ -88,7 +89,9 @@ def _translate_datasource(fragment, warnings):
     if url:
         jdbc["url"] = url
     if fragment.get("type") == "xa-data-source" or fragment.get("xa"):
-        jdbc["transactions"] = "xa"
+        # quarkus.datasource.jdbc.transactions is fixed when the artifact is built (bdi-jpa-xa starter): the
+        # fragment states a requirement the validation checks against the contract, it renders nothing
+        platform.setdefault("xa_datasources", []).append(name)
     if "pool_min" in fragment:
         jdbc["min-size"] = int(fragment["pool_min"])
     if "pool_max" in fragment:
@@ -100,8 +103,10 @@ def _translate_datasource(fragment, warnings):
         ds["username"] = fragment["user"]
     if "password" in fragment:
         ds["password"] = fragment["password"]
-    if fragment.get("enable_statistics"):
-        ds["metrics"] = {"enabled": True}
+    if "enable_statistics" in fragment:
+        # quarkus.datasource.metrics.enabled is a build-time key: pool metrics are part of the artifact
+        # (bdi-observability, cookbook 13), so the fragment cannot switch them on per environment
+        warnings.append(f"{file}: enable_statistics is a build-time choice of the artifact (datasource metrics come with bdi-observability); ignored")
     if "validate_on_match" in fragment:
         warnings.append(f"{file}: validate_on_match has no Quarkus key; Agroal validates connections in the background (quarkus.datasource.jdbc.background-validation-interval)")
     if "driver" in fragment:
@@ -230,7 +235,7 @@ def bdi_render(fragments):
     for fragment in fragments:
         kind = fragment.get("kind", "config")
         if kind == "datasource":
-            tree = _translate_datasource(fragment, warnings)
+            tree = _translate_datasource(fragment, warnings, platform)
         elif kind == "property":
             tree = _unflatten({fragment["name"]: fragment["value"]})
         elif kind == "properties":
@@ -277,37 +282,179 @@ def bdi_unflatten(flat):
 
 
 ROLES_MAPPING = "quarkus.http.auth.roles-mapping."
+PLATFORM_SOURCES = re.compile(r"(secrets\.yaml|instance\.yaml|application-[^/]+\.yaml)")
+EXTERNAL_SOURCES = re.compile(r"SysPropConfigSource|EnvConfigSource|\.env")
+DURATION = re.compile(r"^(P(\d+D)?(T(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)?|PT?(\d+H)?(\d+M)?(\d+(\.\d+)?S)?|(\d+H)?(\d+M)?(\d+(\.\d+)?S)?)$", re.I)
 
 
-def bdi_check(config, secrets, contract):
-    """Validate rendered config + secrets against the artifact's contract (missing, misplaced, unknown)."""
+def _pattern(name):
+    return re.compile("^" + re.escape(name).replace(r"\*", '("[^"]*"|[^.]+)') + "$")
+
+
+def _family(keys, name):
+    """The contract key a concrete key belongs to: itself, or the wildcard family it matches."""
+    for key in keys:
+        if key["name"] == name:
+            return key
+    for key in keys:
+        if "*" in key["name"] and _pattern(key["name"]).match(name):
+            return key
+    return None
+
+
+def _is_required(key, values):
+    if key.get("required"):
+        return True
+    condition = key.get("required-if")
+    if condition and "=" in condition:
+        other, expected = condition.split("=", 1)
+        return str(values.get(other.strip(), "")).strip() == expected.strip()
+    return False
+
+
+def _check_value(key, value):
+    """The same rules as ConfigContract.check on the Java side: type, then constraints. Returns a problem or None."""
+    text = str(value).strip()
+    if key.get("secret"):
+        return "secret is empty" if text == "" else None
+    kind = key.get("type", "String")
+    try:
+        if kind in ("int", "Integer", "long", "Long", "short", "Short"):
+            number = int(text)
+        elif kind in ("BigDecimal", "double", "Double", "float", "Float"):
+            number = Decimal(text)
+        elif kind in ("boolean", "Boolean"):
+            if text.lower() not in ("true", "false"):
+                return f"'{text}' is not a boolean"
+            number = None
+        elif kind == "Duration":
+            if not (text.isdigit() or (text and DURATION.match(text) and re.search(r"\d", text))):
+                return f"'{text}' is not a valid Duration"
+            number = None
+        else:
+            number = None
+    except (ValueError, ArithmeticError):
+        return f"'{text}' is not a valid {kind}"
+    if number is not None:
+        if "min" in key and number < Decimal(str(key["min"])):
+            return f"{text} is below the minimum {key['min']}"
+        if "max" in key and number > Decimal(str(key["max"])):
+            return f"{text} is above the maximum {key['max']}"
+    values = key.get("values") or []
+    if values and not any(v.lower() == text.lower() or v.replace("_", "-").lower() == text.lower() for v in values):
+        return f"'{text}' is not one of {values}"
+    if key.get("pattern") and not re.fullmatch(key["pattern"], text):
+        return f"'{text}' does not match {key['pattern']}"
+    return None
+
+
+def bdi_check(config, secrets, contract, xa_datasources=None):
+    """Validate rendered config + secrets against the artifact's contract, before anything touches a host.
+
+    missing:   required keys (outright, or through required-if) absent or blank
+    misplaced: secret keys rendered in the inventory instead of the vault file (wildcard families included)
+    fixed:     build-time keys rendered at all: they are fixed in the artifact, rendering them changes nothing
+    invalid:   values that fail their type or constraints (int, boolean, Duration, min/max, values, pattern)
+    unknown:   keys the contract does not declare (informational)
+    xa:        datasources declared xa-data-source for an artifact built without bdi-jpa-xa
+    """
     flat_config, flat_secrets = _flatten(config, stringify=True), _flatten(secrets, stringify=True)
+    values = {**flat_config, **flat_secrets}
     keys = contract.get("keys", [])
-    missing, misplaced = [], []
+    missing, misplaced, fixed, invalid, unknown = [], [], [], [], []
     for key in keys:
         name = key["name"]
         if "*" in name:
             continue
-        present = name in flat_config or name in flat_secrets
-        if key.get("required") and not present:
+        present = name in values and str(values[name]).strip() != ""
+        if _is_required(key, values) and not present:
             missing.append(name)
         if key.get("secret") and name in flat_config:
             misplaced.append(name)
-    known = [k["name"] for k in keys]
-    patterns = [re.compile("^" + re.escape(k).replace(r"\*", '("[^"]*"|[^.]+)') + "$") for k in known if "*" in k]
-    unknown = [n for n in flat_config if n not in known and not any(p.match(n) for p in patterns)]
-    # roles: when a security module is in use (roles-mapping.* in the contract), every role the code names must
-    # be granted by at least one identity-provider group of this environment
+        if key.get("phase") == "build-time" and name in values:
+            fixed.append(name)
+        if name in values and str(values[name]).strip() != "":
+            problem = _check_value(key, values[name])
+            if problem:
+                invalid.append(f"{name}: {problem}")
+    concrete = {k["name"] for k in keys if "*" not in k["name"]}
+    for name, value in values.items():
+        if name in concrete:
+            continue
+        key = _family(keys, name)
+        if key is None:
+            if name in flat_config:
+                unknown.append(name)
+            continue
+        if key.get("secret") and name in flat_config:
+            misplaced.append(name)
+        if key.get("phase") == "build-time":
+            fixed.append(name)
+        problem = _check_value(key, value) if str(value).strip() != "" else None
+        if problem:
+            invalid.append(f"{name}: {problem}")
     roles = contract.get("roles", [])
-    if roles and ROLES_MAPPING + "*" in known:
+    if roles and ROLES_MAPPING + "*" in {k["name"] for k in keys}:
         granted = set()
         for name, value in flat_config.items():
             if name.startswith(ROLES_MAPPING):
                 granted.update(r.strip() for r in str(value).split(","))
         missing.extend(f"role:{r}" for r in roles if r not in granted)
-    return {"missing": missing, "misplaced": misplaced, "unknown": unknown}
+    xa = []
+    if xa_datasources:
+        for ds in xa_datasources:
+            key_name = "quarkus.datasource.jdbc.transactions" if ds == "default" else f"quarkus.datasource.{ds}.jdbc.transactions"
+            key = _family(keys, key_name)
+            if key is None or str(key.get("default", "")).lower() != "xa":
+                xa.append(ds)
+    return {"missing": missing, "misplaced": misplaced, "fixed": fixed, "invalid": invalid, "unknown": unknown, "xa": xa}
+
+
+def bdi_verify(platform, rendered_config, env, version, config_revision):
+    """Compare what the running instance reports on /q/platform with what the platform approved.
+
+    Beyond completeness: every rendered non-secret key must be in effect with the rendered value and come from
+    the platform's files (not shadowed by a JVM property or an environment variable); a platform key not
+    rendered must not be set from outside the platform either; the configuration revision must be the one
+    just rendered; no value may violate the contract. Secrets are checked for presence and source only.
+    """
+    flat = _flatten(rendered_config, stringify=True)
+    problems = []
+    application = platform.get("application", {})
+    if application.get("version") != version:
+        problems.append(f"running version {application.get('version')!r}, expected {version!r}")
+    if env not in application.get("profiles", []):
+        problems.append(f"active profiles {application.get('profiles')}, expected {env}")
+    for name in platform.get("missing", []):
+        problems.append(f"{name}: required, not provided")
+    for violation in platform.get("violations", []):
+        problems.append(f"{violation} (contract violation)")
+    running_revision = platform.get("revision", {}).get("config", "")
+    if config_revision and running_revision != config_revision:
+        problems.append(f"configuration revision running {running_revision[:12]!r}, rendered {config_revision[:12]!r}: the instance did not pick up the rendered file")
+    for echo in platform.get("config", []):
+        key, source = echo.get("key"), echo.get("source") or ""
+        if key in flat:
+            if not echo.get("present"):
+                problems.append(f"{key}: rendered, but not in effect")
+            elif not echo.get("secret") and str(echo.get("value")) != flat[key]:
+                problems.append(f"{key}: effective {echo.get('value')!r} differs from rendered {flat[key]!r} (source {source})")
+            elif not PLATFORM_SOURCES.search(source):
+                problems.append(f"{key}: rendered value shadowed by {source}")
+        elif echo.get("present") and EXTERNAL_SOURCES.search(source):
+            problems.append(f"{key}: set outside the platform by {source}")
+    return problems
+
+
+def bdi_systemd_quote(value):
+    """One quoted assignment value for a systemd EnvironmentFile/Environment line: spaces stay inside the value."""
+    text = str(value).replace("\\", "\\\\").replace('"', '\\"')
+    return '"' + text + '"'
 
 
 class FilterModule:
     def filters(self):
-        return {"bdi_render": bdi_render, "bdi_unflatten": bdi_unflatten, "bdi_check": bdi_check}
+        return {"bdi_render": bdi_render, "bdi_unflatten": bdi_unflatten, "bdi_check": bdi_check,
+            "bdi_verify": bdi_verify,
+            "bdi_systemd_quote": bdi_systemd_quote,
+        }

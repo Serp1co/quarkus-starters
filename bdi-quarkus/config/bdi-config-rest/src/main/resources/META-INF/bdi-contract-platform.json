@@ -1,6 +1,6 @@
 {
   "module": "bdi-config-rest",
   "keys": [
-    { "name": "quarkus.http.port", "type": "int", "default": "8080", "doc": "API port, the load balancer target" }
+    { "name": "quarkus.http.port", "type": "int", "default": "8080", "min": "1", "max": "65535", "doc": "API port, the load balancer target" }
   ]
 }

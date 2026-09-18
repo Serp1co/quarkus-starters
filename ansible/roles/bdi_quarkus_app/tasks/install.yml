@@ -19,20 +19,29 @@
 - name: Rendered configuration application-{{ bdi_env }}.yaml
   ansible.builtin.copy:
     content: |
-      # Rendered by Ansible for {{ bdi_app }} {{ bdi_version }}, env={{ bdi_env }}. Do not edit: change the fragments under apps/{{ bdi_app }}.
-      {{ bdi_rendered.config | to_nice_yaml(indent=2, sort_keys=false) }}
+      # Rendered by Ansible for {{ bdi_app }} {{ bdi_version }}, env={{ bdi_env }}, revision {{ bdi_config_revision }}.
+      # Do not edit: change the fragments under apps/{{ bdi_app }}.
+      {{ bdi_rendered.config | combine({'bdi': {'config': {'revision': bdi_config_revision}}}, recursive=True) | to_nice_yaml(indent=2, sort_keys=false) }}
     dest: "{{ bdi_etc }}/{{ bdi_app }}/application-{{ bdi_env }}.yaml"
     owner: "{{ bdi_service_user if bdi_service_manager == 'systemd' else omit }}"
     mode: "0640"
   notify: restart application
 
-- name: Secrets from the vault, 0600
+- name: Secrets from the vault, 0600 (with the delivery time, reported by /q/platform without the values)
   ansible.builtin.copy:
-    content: "{{ bdi_secrets | to_nice_yaml(indent=2) }}"
+    content: "{{ bdi_secrets | combine({'bdi': {'secrets': {'revision': bdi_secrets_revision}}}, recursive=True) | to_nice_yaml(indent=2) }}"
     dest: "{{ bdi_etc }}/{{ bdi_app }}/secrets.yaml"
     owner: "{{ bdi_service_user if bdi_service_manager == 'systemd' else omit }}"
     mode: "0600"
   no_log: true
+  notify: restart application
+
+- name: Environment file of the service (quoted, because JAVA_OPTS carries spaces that an Environment= line would split)
+  ansible.builtin.template:
+    src: environment.j2
+    dest: "{{ bdi_etc }}/{{ bdi_app }}/environment"
+    owner: "{{ bdi_service_user if bdi_service_manager == 'systemd' else omit }}"
+    mode: "0640"
   notify: restart application
 
 - name: Remember the release currently active (for rollback)

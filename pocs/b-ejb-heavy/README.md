@@ -50,7 +50,8 @@ Two lessons that only show up when you run it:
 `src/main/java/it/bancaditalia/quarkus/poc/ejb`: `domain` (two entities, one exception), `repository`, `service`
 (instruction, batch, settlement, notifier), `timer`, `reference`, `api`, `config` (`SettlementConfig`, the
 `@ConfigMapping`; the contract is derived from it). `application.yaml` holds `%dev`/`%test` values only; the
-starters are `bdi-rest-jackson`, `bdi-jpa-postgresql`, `bdi-flyway-postgresql`, `bdi-scheduler`,
+starters are `bdi-rest-jackson`, `bdi-jpa-postgresql`, `bdi-jpa-xa` (the EAP `xa-data-source`: XA fixed at
+build time, recovery node name and object store rendered at runtime), `bdi-flyway-postgresql`, `bdi-scheduler`,
 `bdi-observability`, `bdi-test`.
 
 Tests: `SettlementServiceTest` (batch isolation: settled, rejected, and the failing batch left pending; the

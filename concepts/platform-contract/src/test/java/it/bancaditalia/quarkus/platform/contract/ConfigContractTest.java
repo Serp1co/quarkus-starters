@@ -139,6 +139,54 @@ class ConfigContractTest {
     }
 
     @Test
+    void validatesTypesConstraintsAndConditionalRequirements() {
+        ConfigContract contract = ConfigContract.builder()
+                .platform("quarkus.management.port", "int", "9000", "port")
+                .platformSecret("quarkus.datasource.password", "db")
+                .addIfAbsent(new ConfigContract.Key("quarkus.oidc.application-type", "String", false, Optional.of("service"), false,
+                        ConfigContract.Owner.PLATFORM, "", ConfigContract.Phase.RUNTIME,
+                        new ConfigContract.Constraints(Optional.empty(), Optional.empty(), Optional.empty(), List.of("service", "web-app"), Optional.empty())))
+                .addIfAbsent(new ConfigContract.Key("quarkus.oidc.credentials.secret", "String", false, Optional.empty(), true,
+                        ConfigContract.Owner.PLATFORM, "", ConfigContract.Phase.RUNTIME,
+                        new ConfigContract.Constraints(Optional.empty(), Optional.empty(), Optional.empty(), List.of(), Optional.of("quarkus.oidc.application-type=web-app"))))
+                .addIfAbsent(new ConfigContract.Key("quarkus.security.ldap.cache.max-age", "Duration", false, Optional.of("60S"), false,
+                        ConfigContract.Owner.PLATFORM, ""))
+                .addIfAbsent(new ConfigContract.Key("registry.max-page-size", "int", false, Optional.of("100"), false,
+                        ConfigContract.Owner.APPLICATION, "", ConfigContract.Phase.RUNTIME,
+                        new ConfigContract.Constraints(Optional.of("1"), Optional.of("1000"), Optional.empty(), List.of(), Optional.empty())))
+                .build();
+        SmallRyeConfig config = new SmallRyeConfigBuilder()
+                .withSources(new PropertiesConfigSource(Map.of(
+                        "quarkus.management.port", "not-a-number",
+                        "quarkus.datasource.password", "",
+                        "quarkus.oidc.application-type", "web-app",
+                        "quarkus.security.ldap.cache.max-age", "5S",
+                        "registry.max-page-size", "5000"), "inventory", 500))
+                .build();
+        List<String> violations = contract.violations(config);
+        assertTrue(violations.stream().anyMatch(v -> v.startsWith("quarkus.management.port:") && v.contains("not a valid int")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.startsWith("quarkus.datasource.password:") && v.contains("empty")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.startsWith("registry.max-page-size:") && v.contains("above the maximum")), violations.toString());
+        assertEquals(3, violations.size(), violations.toString());
+        // required-if: the client secret is required because the application type is web-app; a blank secret is missing
+        assertEquals(List.of("quarkus.datasource.password", "quarkus.oidc.credentials.secret"), contract.missing(config));
+        assertTrue(ConfigContract.check(contract.key("quarkus.oidc.application-type").orElseThrow(), "bearer").isPresent());
+        assertTrue(ConfigContract.check(contract.key("quarkus.security.ldap.cache.max-age").orElseThrow(), "PT1H").isEmpty());
+        assertTrue(ConfigContract.check(contract.key("quarkus.security.ldap.cache.max-age").orElseThrow(), "soon").isPresent());
+        assertTrue(contract.match("quarkus.datasource.password").isPresent());
+    }
+
+    @Test
+    void wildcardKeysMatchOneSegmentQuotedOrNot() {
+        ConfigContract.Key key = new ConfigContract.Key("quarkus.datasource.*.password", "String", false, Optional.empty(), true,
+                ConfigContract.Owner.PLATFORM, "");
+        assertTrue(key.matches("quarkus.datasource.reporting.password"));
+        assertTrue(key.matches("quarkus.datasource.\"reporting.eu\".password"));
+        assertFalse(key.matches("quarkus.datasource.password"));
+        assertFalse(key.matches("quarkus.datasource.a.b.password"));
+    }
+
+    @Test
     void rendersJsonAndMarkdown() {
         ConfigContract contract = ConfigContract.builder()
                 .platform("quarkus.http.port", "int", "8080", "HTTP \"port\"")
@@ -146,10 +194,10 @@ class ConfigContractTest {
                 .build();
         String json = contract.toJson();
         assertTrue(json.contains("{\"name\": \"quarkus.http.port\", \"type\": \"int\", \"required\": false, "
-                + "\"default\": \"8080\", \"secret\": false, \"owner\": \"platform\", \"doc\": \"HTTP \\\"port\\\"\"},"), json);
+                + "\"default\": \"8080\", \"secret\": false, \"owner\": \"platform\", \"phase\": \"runtime\", \"doc\": \"HTTP \\\"port\\\"\"},"), json);
         assertTrue(json.contains("\"default\": null"), json);
         assertTrue(contract.toMarkdownTable()
-                .contains("| `quarkus.datasource.jdbc.url` | String | yes |  | platform | JDBC URL |"));
+                .contains("| `quarkus.datasource.jdbc.url` | String | yes |  | platform | runtime | JDBC URL |"));
     }
 
     @Test

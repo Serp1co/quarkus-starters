@@ -20,6 +20,9 @@
     bdi_artifact_url: "{{ bdi_artifact_url if bdi_artifact_url | length > 0 else bdi_rendered.platform.release.artifact_url | default('') }}"
     bdi_java_opts: "{{ bdi_rendered.platform.java_opts | default(bdi_java_opts) }}"
     bdi_management_port: "{{ bdi_rendered.config.quarkus.management.port | default(bdi_management_port) }}"
+    # the revision of the rendered configuration: written into the file, reported back by /q/platform, compared in verify
+    bdi_config_revision: "{{ bdi_rendered.config | to_json(sort_keys=True) | hash('sha256') }}"
+    bdi_secrets_revision: "{{ now(utc=True, fmt='%Y-%m-%dT%H:%M:%SZ') }}"
   tags: [always]
 
 - name: Check the required variables

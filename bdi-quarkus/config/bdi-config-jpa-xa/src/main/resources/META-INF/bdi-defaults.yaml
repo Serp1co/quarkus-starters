@@ -1,0 +1,7 @@
+# Standardized defaults of bdi-config-jpa-xa. Ordinal 105: over bdi-config-jpa (100). The transaction mode of a
+# datasource is a build-time key of Quarkus: it is decided here, when the artifact is built, and never rendered.
+x-bdi-ordinal: 105
+quarkus:
+  datasource:
+    jdbc:
+      transactions: xa

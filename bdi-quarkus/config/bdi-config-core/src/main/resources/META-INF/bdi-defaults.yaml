@@ -2,3 +2,5 @@
 quarkus:
   banner:
     enabled: false
+  config:
+    build-time-mismatch-at-runtime: fail   # a build-time key rendered with another value stops the start instead of warning (design note 2.2)

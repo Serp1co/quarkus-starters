@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An application as the bank's teams write it: inherits bdi-quarkus-parent, has its own version, declares starters only. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>bdi-quarkus-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>it.bancaditalia.apps</groupId>
+  <artifactId>sample-app</artifactId>
+  <version>7.2.0</version>
+  <name>sample-app</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-rest-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-observability</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

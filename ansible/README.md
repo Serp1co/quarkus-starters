@@ -13,7 +13,9 @@ lost; what changes is what the fragments render into.
 | `${fromvault.app.PASSWORD}` resolved by the vault task | the same placeholder syntax; the role routes every placeholder to `secrets.yaml` (0600) and refuses a secret written in clear text |
 | rendered `standalone.xml`, developers bind to JNDI names | rendered `application-<env>.yaml`, developers bind to logical config keys |
 | deploy the EAR through the management CLI | fetch the versioned zip from Nexus, release/`current` layout, hardened systemd unit, restart gated on `/q/health/ready` |
-| nothing checks the configuration before deploying | the rendered files are validated against `META-INF/config-contract.json` of the exact artifact, before the host is touched: required keys present, secrets only in the vault-fed file, every `@RolesAllowed` role granted by some group of the environment |
+| nothing checks the configuration before deploying | the rendered files are validated against `META-INF/config-contract.json` of the exact artifact, before the host is touched: required keys present and typed within their constraints, secrets only in the vault-fed file (wildcard families included), no build-time key rendered, an `xa-data-source` only for an artifact built with `bdi-jpa-xa`, every `@RolesAllowed` role granted by some group of the environment |
+| nothing checks that the configuration took effect | `/q/platform` after the restart: every rendered value in effect with the rendered value and coming from the platform's files, nothing set from outside the platform (a JVM property or an environment variable shadowing the approved value fails the deploy), the configuration revision just rendered, the platform version, the contract revision, the secrets delivery time |
+| `Environment=JAVA_OPTS=-Xa -Xb` in a unit keeps the first flag only | the unit reads a quoted `EnvironmentFile`, validated with `systemd-analyze verify` before `daemon-reload` |
 | nothing checks the deployment after | `/q/platform` reports version, profile and the source of every key |
 
 The full catalogue of EAP fragment files and their parallel is in [`fragments/README.md`](fragments/README.md),
@@ -101,10 +103,9 @@ E="-e bdi_app=poc-a-jakarta-classic -e bdi_version=1.0.0-SNAPSHOT -e bdi_artifac
    -e bdi_root=/tmp/vm/opt/bdi -e bdi_etc=/tmp/vm/etc/bdi -e bdi_service_manager=none -e bdi_become=false"
 ansible-playbook playbooks/validate.yml $E                            # render + contract check only
 ansible-playbook playbooks/deploy.yml   $E --skip-tags verify          # files and release; no systemd here
-# start it the way the unit would, then verify
-( cd /tmp/vm/opt/bdi/poc-a-jakarta-classic/current && QUARKUS_PROFILE=uat \
-  QUARKUS_CONFIG_LOCATIONS=/tmp/vm/etc/bdi/poc-a-jakarta-classic/application-uat.yaml,/tmp/vm/etc/bdi/poc-a-jakarta-classic/secrets.yaml \
-  java -jar quarkus-app/quarkus-run.jar ) &
+# start it the way the unit would (its EnvironmentFile is shell-compatible), then verify
+( cd /tmp/vm/opt/bdi/poc-a-jakarta-classic/current && set -a && . /tmp/vm/etc/bdi/poc-a-jakarta-classic/environment && set +a \
+  && java $JAVA_OPTS -jar quarkus-app/quarkus-run.jar ) &
 ansible-playbook playbooks/deploy.yml   $E --tags verify
 ansible-playbook playbooks/rollback.yml $E
 ansible-playbook playbooks/deploy.yml   $E --check --diff --skip-tags verify   # drift detection
@@ -137,3 +138,14 @@ directories, SELinux contexts, firewalld for 8080 and 9000, journald) is a separ
 - The contract lists only the keys the starters declare; Agroal keys such as `min-size` are reported as
   undeclared, not refused. Either the config modules declare more keys, or the check learns the Quarkus
   key catalogue of the stream.
+
+## What the conformance check compares
+
+`verify.yml` reads `/q/platform` and fails the deploy unless: the version and the profile are the ones
+deployed; no required key is missing and no value violates the contract; every key the platform rendered
+is in effect with the rendered value and its winning source is one of the platform's files (a JVM property
+or an environment variable shadowing it is reported with both values); no platform key is set from outside
+the platform; the configuration revision reported by the instance is the hash of the file just rendered.
+Secrets are compared for presence and source only; the secrets file carries its delivery time, reported
+without the values. Verified in the sandbox: a start with `-Dquarkus.log.level=WARN` fails the check with
+`quarkus.log.level: effective 'WARN' differs from rendered 'INFO' (source SysPropConfigSource)`.

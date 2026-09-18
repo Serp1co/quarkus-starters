@@ -8,9 +8,14 @@ stream by the root POM, and exported to applications outside this repository thr
 ```
 bdi-quarkus/
   bom/                         bdi-quarkus-bom: RHBQ platform BOM + every bdi-* artifact, for external applications
+  parent/                      bdi-quarkus-parent: the parent POM of every application (BOM at a fixed platform version,
+                               contract export, artifact lint, dependency governance, packaging); it/ builds two
+                               applications outside the reactor with versions of their own, and the three refusals
+  assembly/                    the quarkus-app zip descriptor the parent binds, so no application carries one
   config/bdi-config-core       the mechanism: loads META-INF/bdi-defaults.yaml of every module; brings YAML config
   config/bdi-config-rest       defaults + contract keys of the REST stack
   config/bdi-config-jpa        defaults + contract keys of JPA/JTA/Agroal, shared by every bdi-jpa-* variation
+  config/bdi-config-jpa-xa     the approved XA build configuration (transactions=xa fixed at build time, ordinal 105)
   config/bdi-config-observability   defaults for logging/management, the /q/platform conformance endpoint, contract assembly
   config/bdi-config-scheduler  Quartz clustered on the application database, contract keys of the timers
   config/bdi-config-flyway     migrate at start, Hibernate validate (ordinal 110 over bdi-config-jpa)
@@ -39,6 +44,7 @@ bdi-quarkus/
 | `bdi-jms-amqp` | `quarkus-qpid-jms` 2.12.0 (amqphub) | `bdi-config-jms`: the JMS connection follows the `amqp-*` keys | **not in the RHBQ platform, unsupported** |
 | `bdi-messaging-kafka` | `quarkus-messaging-kafka` | `bdi-config-messaging-kafka`: throttled commits, dead-letter topic, earliest; `kafka.*` contract keys | supported |
 | `bdi-scheduler-local` | `quarkus-scheduler` (in-memory, per instance) | | supported |
+| `bdi-jpa-xa` | none: `bdi-config-jpa-xa` fixes `quarkus.datasource.jdbc.transactions=xa` at build time (the EAP `xa-data-source`); the deploy role refuses an XA fragment for an artifact built without it | `bdi-config-jpa-xa` | supported |
 | `bdi-jpa-panache` | `quarkus-hibernate-orm-panache` (repositories, active record, paging, projections); a capability next to a `bdi-jpa-*` variation | `bdi-config-jpa` | supported |
 | `bdi-jpa-audit` | `quarkus-hibernate-envers` (`@Audited` history) | `bdi-config-audit` | supported |
 | `bdi-security-ldap` | `quarkus-elytron-security-ldap` (Basic auth, AD-shaped realm) | `bdi-config-security-ldap` + `bdi-config-security` | supported |
@@ -106,6 +112,27 @@ confirmed against the RHBQ supported-configurations list, design note §9):
 Rules: a default is always overridable; a default is never an environment value; every platform key a
 module relies on is in its `bdi-contract-platform.json`; the module's README line in the table above says what
 it standardizes.
+
+## Parent POM: what an application inherits
+
+Applications inherit `bdi-quarkus-parent` (`bdi-quarkus/parent`), not this repository's parent: the
+repository parent manages its own artifacts at `${project.version}`, which in an application resolves to the
+*application's* version. `bdi-quarkus-parent` is standalone and imports `bdi-quarkus-bom` at the explicit
+`bdi.platform.version`, so an application at 7.2.0 resolves `bdi-rest-jackson` at the platform's version
+(`parent/it/run.sh` proves it, and that the parent's own version and the platform version it imports are the
+same release). It binds what a governed build must run and an application must not skip:
+
+| Bound in the parent | What it does |
+|---|---|
+| `ContractExporter` (process-classes) | derives `META-INF/config-contract.json` from the compiled classes and the module descriptors |
+| `ArtifactConfigLint` (process-classes) | fails the build on environment profiles, packaged secrets, platform runtime keys in the packaged configuration |
+| enforcer `bannedDependencies` | no direct `io.quarkus`, `io.quarkiverse`, SmallRye, Hibernate, JBoss, Vert.x or MicroProfile dependency (starters only); no platform artifact at another version |
+| `quarkus-maven-plugin`, surefire, failsafe, assembly | the fast-jar, the tests, `-DskipITs=false` integration tests, the `quarkus-app` zip the deploy role installs |
+
+Applications that cannot inherit it (a corporate parent of their own) import the BOM and copy the plugin
+section of `parent/it/bom-only-app/pom.xml`; the deploy role refuses an artifact without a contract either
+way. Overrides of third-party versions the BOM manages are not caught by the enforcer: the release pipeline
+diffs the resolved dependency graph against the BOM (pending, cookbook 2).
 
 ## BOM
 

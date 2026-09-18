@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Environment of bdi-{{ bdi_app }}.service. Values are quoted for systemd's EnvironmentFile parser: JAVA_OPTS
+# carries several flags, and an unquoted Environment= line would keep only the first.
+QUARKUS_PROFILE={{ bdi_env | bdi_systemd_quote }}
+# Locations: the first listed wins. Rendered files beat environment variables, so nothing per-instance is passed as env.
+QUARKUS_CONFIG_LOCATIONS={{ (bdi_etc ~ '/' ~ bdi_app ~ '/secrets.yaml,' ~ bdi_etc ~ '/' ~ bdi_app ~ '/application-' ~ bdi_env ~ '.yaml') | bdi_systemd_quote }}
+JAVA_OPTS={{ bdi_java_opts | bdi_systemd_quote }}

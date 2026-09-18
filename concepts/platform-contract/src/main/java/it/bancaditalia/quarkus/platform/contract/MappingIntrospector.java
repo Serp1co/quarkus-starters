@@ -95,7 +95,46 @@ final class MappingIntrospector {
         boolean required = !optional && !map && defaultValue.isEmpty();
         Doc doc = method.getAnnotation(Doc.class);
         return new ConfigContract.Key(key, type, required, defaultValue, method.isAnnotationPresent(Secret.class),
-                ConfigContract.Owner.APPLICATION, doc == null ? "" : doc.value());
+                ConfigContract.Owner.APPLICATION, doc == null ? "" : doc.value(), ConfigContract.Phase.RUNTIME,
+                constraints(method));
+    }
+
+    /**
+     * Bean Validation constraints on the method ({@code @Min}, {@code @Max}, {@code @DecimalMin}, {@code @DecimalMax},
+     * {@code @Pattern}) and the constants of an enum return type, read by annotation name so that the contract
+     * library does not depend on Bean Validation.
+     */
+    private static ConfigContract.Constraints constraints(Method method) {
+        Optional<String> min = Optional.empty(), max = Optional.empty(), pattern = Optional.empty();
+        for (java.lang.annotation.Annotation annotation : method.getAnnotations()) {
+            String name = annotation.annotationType().getName();
+            switch (name) {
+                case "jakarta.validation.constraints.Min", "jakarta.validation.constraints.DecimalMin" -> min = Optional.of(member(annotation, "value"));
+                case "jakarta.validation.constraints.Max", "jakarta.validation.constraints.DecimalMax" -> max = Optional.of(member(annotation, "value"));
+                case "jakarta.validation.constraints.Pattern" -> pattern = Optional.of(member(annotation, "regexp"));
+                default -> {
+                }
+            }
+        }
+        List<String> values = new ArrayList<>();
+        Type returned = method.getGenericReturnType();
+        if (returned instanceof ParameterizedType parameterized && parameterized.getRawType() == Optional.class) {
+            returned = parameterized.getActualTypeArguments()[0];
+        }
+        if (returned instanceof Class<?> clazz && clazz.isEnum()) {
+            for (Object constant : clazz.getEnumConstants()) {
+                values.add(((Enum<?>) constant).name());
+            }
+        }
+        return new ConfigContract.Constraints(min, max, pattern, values, Optional.empty());
+    }
+
+    private static String member(java.lang.annotation.Annotation annotation, String member) {
+        try {
+            return String.valueOf(annotation.annotationType().getMethod(member).invoke(annotation));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** A nested mapping group is any non-JDK interface; JDK interfaces (Path, CharSequence...) are converted leaves. */

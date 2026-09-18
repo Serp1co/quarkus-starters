@@ -1,0 +1,6 @@
+{
+  "module": "bdi-config-jpa-xa",
+  "keys": [
+    { "name": "quarkus.datasource.jdbc.transactions", "type": "String", "default": "xa", "phase": "build-time", "values": ["enabled", "xa", "disabled"], "replaces": true, "doc": "XA transactions, fixed at build time by the bdi-jpa-xa starter (EAP: xa-data-source); the recovery node name and object store are the runtime keys of bdi-config-jpa" }
+  ]
+}

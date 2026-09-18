@@ -1,7 +1,7 @@
 {
   "module": "bdi-config-security-ldap",
   "keys": [
-    { "name": "quarkus.security.ldap.dir-context.url", "type": "String", "required": true, "doc": "LDAP URL of the directory: ldaps://<global catalog or domain controller>:636 (3269 for the global catalog); the CA is in the platform truststore" },
+    { "name": "quarkus.security.ldap.dir-context.url", "type": "String", "required": true, "pattern": "^ldaps?://.+", "doc": "LDAP URL of the directory: ldaps://<global catalog or domain controller>:636 (3269 for the global catalog); the CA is in the platform truststore" },
     { "name": "quarkus.security.ldap.dir-context.principal", "type": "String", "required": true, "doc": "DN or UPN of the service account that searches users and groups (read-only)" },
     { "name": "quarkus.security.ldap.dir-context.password", "type": "String", "required": true, "secret": true, "doc": "Password of the service account, delivered from the vault" },
     { "name": "quarkus.security.ldap.identity-mapping.search-base-dn", "type": "String", "required": true, "doc": "Base DN under which users are searched by sAMAccountName (recursive)" },

@@ -1,7 +1,7 @@
 {
   "module": "bdi-config-scheduler",
   "keys": [
-    { "name": "quarkus.quartz.clustered", "type": "boolean", "default": "true", "doc": "Quartz cluster mode: true whenever more than one instance runs (fixed at build time)" },
-    { "name": "quarkus.scheduler.enabled", "type": "boolean", "default": "true", "doc": "Switch off the scheduler on instances that must not run jobs" }
+    { "name": "quarkus.quartz.clustered", "type": "boolean", "default": "true", "phase": "build-time", "doc": "Quartz cluster mode: true whenever more than one instance runs (fixed at build time)" },
+    { "name": "quarkus.scheduler.enabled", "type": "boolean", "default": "true", "phase": "build-time", "doc": "Scheduler on or off: fixed at build time (a per-instance switch is quarkus.quartz.start-mode, runtime)" }
   ]
 }

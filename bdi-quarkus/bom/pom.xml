@@ -162,6 +162,16 @@
       </dependency>
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-jpa-xa</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-jpa-xa</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-config-security</artifactId>
         <version>${project.version}</version>
       </dependency>

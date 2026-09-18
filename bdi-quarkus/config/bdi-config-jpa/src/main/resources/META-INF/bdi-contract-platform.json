@@ -1,11 +1,19 @@
 {
   "module": "bdi-config-jpa",
   "keys": [
-    { "name": "quarkus.datasource.jdbc.url", "type": "String", "required": true, "doc": "JDBC URL of the application database (Agroal pool)" },
+    { "name": "quarkus.datasource.jdbc.url", "type": "String", "required": true, "pattern": "^jdbc:.+", "doc": "JDBC URL of the application database (Agroal pool)" },
     { "name": "quarkus.datasource.username", "type": "String", "required": true, "doc": "Database user of this application" },
     { "name": "quarkus.datasource.password", "type": "String", "required": true, "secret": true, "doc": "Database password, delivered from the vault" },
-    { "name": "quarkus.datasource.jdbc.max-size", "type": "int", "default": "20", "doc": "Upper bound of the connection pool" },
+    { "name": "quarkus.datasource.jdbc.max-size", "type": "int", "default": "20", "min": "1", "max": "500", "doc": "Upper bound of the connection pool" },
+    { "name": "quarkus.datasource.jdbc.min-size", "type": "int", "default": "2", "min": "0", "max": "500", "doc": "Connections kept open when idle" },
+    { "name": "quarkus.datasource.jdbc.transactions", "type": "String", "default": "enabled", "phase": "build-time", "values": ["enabled", "xa", "disabled"], "doc": "Local (enabled) or XA transactions: fixed when the artifact is built. XA is the bdi-jpa-xa starter, never a rendered key" },
+    { "name": "quarkus.datasource.metrics.enabled", "type": "boolean", "default": "false", "phase": "build-time", "doc": "Agroal pool metrics: fixed at build time, on with bdi-observability's metrics (cookbook 13); never a rendered key" },
     { "name": "quarkus.transaction-manager.node-name", "type": "String", "default": "quarkus", "doc": "XA recovery node name: unique per instance (EAP: the server name)" },
-    { "name": "quarkus.transaction-manager.object-store.directory", "type": "String", "default": "ObjectStore", "doc": "XA transaction log: persistent, node-local, outside the release directory (EAP: standalone/data/tx-object-store)" }
+    { "name": "quarkus.transaction-manager.object-store.directory", "type": "String", "default": "ObjectStore", "doc": "XA transaction log: persistent, node-local, outside the release directory (EAP: standalone/data/tx-object-store)" },
+    { "name": "quarkus.datasource.*.jdbc.url", "type": "String", "pattern": "^jdbc:.+", "doc": "Named datasource (EAP: a second <datasource> with its own jndi-name): its JDBC URL" },
+    { "name": "quarkus.datasource.*.username", "type": "String", "doc": "Named datasource: database user" },
+    { "name": "quarkus.datasource.*.password", "type": "String", "secret": true, "doc": "Named datasource: password, from the vault" },
+    { "name": "quarkus.datasource.*.jdbc.max-size", "type": "int", "min": "1", "max": "500", "doc": "Named datasource: pool upper bound" },
+    { "name": "quarkus.datasource.*.jdbc.min-size", "type": "int", "min": "0", "max": "500", "doc": "Named datasource: idle connections kept" }
   ]
 }

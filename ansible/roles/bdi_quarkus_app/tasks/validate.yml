@@ -1,9 +1,10 @@
 ---
 # 3. Pre-deploy validation (design note 5): the rendered configuration must satisfy the contract of exactly
-#    the artifact being deployed, before any file or service on the host changes.
+#    the artifact being deployed, before any file or service on the host changes. Types and constraints,
+#    secrets only from the vault, build-time keys never rendered, XA only for an artifact built with it.
 - name: Check the rendered configuration against the contract
   ansible.builtin.set_fact:
-    bdi_check: "{{ bdi_rendered.config | bdi_check(bdi_secrets, bdi_contract) }}"
+    bdi_check: "{{ bdi_rendered.config | bdi_check(bdi_secrets, bdi_contract, bdi_rendered.platform.xa_datasources | default([])) }}"
   no_log: true
 
 - name: Keys not declared in the contract (informational, Quarkus keys of extensions without a contract line)
@@ -16,7 +17,14 @@
     that:
       - bdi_check.missing | length == 0
       - bdi_check.misplaced | length == 0
+      - bdi_check.fixed | length == 0
+      - bdi_check.invalid | length == 0
+      - bdi_check.xa | length == 0
     fail_msg: >-
-      {{ bdi_app }} {{ bdi_version }} in {{ bdi_env }}: required keys missing from the inventory: {{ bdi_check.missing }};
-      secret keys that must come from the vault, not from inventory: {{ bdi_check.misplaced }}
-    success_msg: "contract satisfied: {{ bdi_contract['keys'] | length }} keys checked"
+      {{ bdi_app }} {{ bdi_version }} in {{ bdi_env }}:
+      required keys missing from the inventory: {{ bdi_check.missing }};
+      secret keys that must come from the vault, not from inventory: {{ bdi_check.misplaced }};
+      build-time keys that are fixed in the artifact and cannot be rendered (rebuild with the right starter): {{ bdi_check.fixed }};
+      values that violate the contract: {{ bdi_check.invalid }};
+      datasources declared xa-data-source for an artifact built without bdi-jpa-xa: {{ bdi_check.xa }}
+    success_msg: "contract satisfied: {{ bdi_contract['keys'] | length }} keys checked, {{ bdi_contract['roles'] | default([]) | length }} roles"

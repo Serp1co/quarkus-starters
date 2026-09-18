@@ -87,6 +87,9 @@ export KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092                                  #
   the active profile through `QUARKUS_PROFILE`; per-instance values rendered, not passed as env. What the platform must render is declared in
   `@ConfigMapping` interfaces and derived at build time into `META-INF/config-contract.json`, with the
   platform keys coming from the descriptors of the config modules: no application authors a contract.
+- **Phases (§2.2).** Every contract key is `runtime` (rendered per environment) or `build-time` (fixed in the
+  artifact: transactions mode, cluster mode, metrics). Build-time choices are starters (`bdi-jpa-xa`), never
+  rendered keys: the deploy role refuses them, and a mismatch stops the start.
 - **No unit files, no environment in images (§3).** Application repositories never contain a systemd unit;
   the Dockerfile carries no configuration. Both belong to the AAP roles.
 - **Support tags (§7).** Every extension a POC uses is tagged *RHBQ-supported* or *Quarkiverse* in its
@@ -99,7 +102,7 @@ export KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092                                  #
 | Item | State |
 |---|---|
 | Container project (parent POM, wrapper, CI, layout) | done |
-| `bdi-quarkus`: BOM, 18 starters, 13 config modules | done; IBM MQ, security, secrets, SOAP and Spring variations planned with their POCs |
+| `bdi-quarkus`: BOM, application parent (`bdi-quarkus-parent`, tested with applications outside the reactor), 19 starters, 14 config modules | done; IBM MQ, security, secrets, SOAP and Spring variations planned with their POCs |
 | Concept `platform-contract` | done, unit-tested |
 | POC A, Jakarta classic | on the starters, YAML only, zero non-profile config lines; tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
 | POC B, EJB-heavy | done: timers on clustered Quartz, REQUIRES_NEW isolation, async, XA keys, Flyway; two-instance demo |

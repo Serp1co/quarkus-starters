@@ -11,7 +11,7 @@ validates the rendered files against and what the conformance endpoint resolves 
 | `PlatformDescriptor` | What a config module declares in its `META-INF/bdi-contract-platform.json`: the Quarkus keys of the extensions it configures, and key templates for the channels an application declares (`{channel}`, `{application}` substituted). Written once per module by the platform team, never per application. |
 | `ConfigContract` | The keys, JSON in and out, and the runtime echo (`echo(config)`: value, source and ordinal of every key, secrets masked; `missing(config)`). |
 | `@Doc`, `@Secret` | Optional annotations on `@ConfigMapping` methods: the description ops read, and the vault marker. |
-| `ArtifactConfigLint` | Fails a build whose `application.yaml` carries a `"%prod":` section or any environment profile. |
+| `ArtifactConfigLint` | The build-time enforcement of "environment configuration belongs to the platform": run by the parent POM on every application, it reads every packaged configuration resource (`application.yaml/.yml/.properties`, profile files, `META-INF/microprofile-config.properties`) against the derived contract and fails the build on an environment profile, a packaged secret (contract or name-based), or a platform-owned runtime key fixed in the artifact. Build-time keys and inner-loop (`%dev`, `%test`) values pass. |
 
 ## Who owns what
 
@@ -30,8 +30,25 @@ validates the rendered files against and what the conformance endpoint resolves 
 ] }
 ```
 
-`required` and `secret` are what the pre-deploy check needs: every required, non-secret key present in the
-rendered file; every secret key from the vault, never from inventory.
+Every key carries a **phase**: `runtime` (the platform renders it per environment) or `build-time` (fixed
+when the artifact is built: `quarkus.datasource.jdbc.transactions`, `quarkus.quartz.clustered`, pool metrics).
+Rendering a build-time key changes nothing, so the pre-deploy check refuses it (`fixed`) and the runtime
+refuses a mismatching value outright (`quarkus.config.build-time-mismatch-at-runtime=fail`, a default of
+`bdi-config-core`). Changing a build-time choice means another starter: XA is `bdi-jpa-xa`, whose descriptor
+`replaces` the key of `bdi-config-jpa` with default `xa`, and an `xa-data-source` fragment is checked against
+that, never rendered.
+
+Keys also carry what a value must satisfy: the `type` (converted like SmallRye does: `int`, `boolean`,
+`Duration`, `BigDecimal`, enums as `values`), `min`/`max`, a `pattern`, and `required-if` (`other.key=value`,
+e.g. the OIDC client secret when the application type is `web-app`). Bean Validation on a `@ConfigMapping`
+method (`@Min`, `@Max`, `@Pattern`, an enum return type) becomes the constraint of the application key.
+Wildcard keys (`quarkus.datasource.*.password`) describe a family: a rendered key matching a secret family is
+`misplaced` if it is not in the vault file, and every match is type-checked. The same rules run three times:
+`ConfigContract.check` in the build and at runtime (`/q/platform` reports `violations`), and `bdi_check` in
+the Ansible role before a host is touched.
+
+`required` and `secret` are what the pre-deploy check needs: every required, non-secret key present and not
+blank in the rendered file; every secret key from the vault, never from inventory.
 
 The contract also carries `"roles": ["admin", "operator", "reader"]`, the application roles the code names in
 `@RolesAllowed`. When a security module is in use (its descriptor declares `quarkus.http.auth.roles-mapping.*`),

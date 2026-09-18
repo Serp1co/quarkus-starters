@@ -24,7 +24,13 @@ import java.util.Optional;
  * </pre>
  */
 public record PlatformDescriptor(String module, List<ConfigContract.Key> keys, List<ChannelKey> incoming,
-        List<ChannelKey> outgoing) {
+        List<ChannelKey> outgoing, List<String> replaces) {
+
+    /** A key may carry {@code "phase": "build-time"}, {@code "min"/"max"/"pattern"/"values"/"required-if"}, and
+     *  {@code "replaces": true} when a variation module overrides the key of the module it builds on. */
+    public boolean replaces(ConfigContract.Key key) {
+        return replaces.contains(key.name());
+    }
 
     public static final String RESOURCE = "META-INF/bdi-contract-platform.json";
 
@@ -42,14 +48,17 @@ public record PlatformDescriptor(String module, List<ConfigContract.Key> keys, L
         try {
             JsonNode root = new ObjectMapper().readTree(json);
             List<ConfigContract.Key> keys = new ArrayList<>();
+            List<String> replaces = new ArrayList<>();
             for (JsonNode k : root.path("keys")) {
-                keys.add(new ConfigContract.Key(k.path("name").asText(), k.path("type").asText("String"),
-                        k.path("required").asBoolean(false),
-                        k.hasNonNull("default") ? Optional.of(k.path("default").asText()) : Optional.empty(),
-                        k.path("secret").asBoolean(false), ConfigContract.Owner.PLATFORM, k.path("doc").asText("")));
+                ConfigContract.Key key = ConfigContract.keyFromJson(k, ConfigContract.Owner.PLATFORM);
+                keys.add(key);
+                if (k.path("replaces").asBoolean(false)) {
+                    replaces.add(key.name());
+                }
             }
             return new PlatformDescriptor(root.path("module").asText("?"), keys,
-                    channelKeys(root.path("channels").path("incoming")), channelKeys(root.path("channels").path("outgoing")));
+                    channelKeys(root.path("channels").path("incoming")), channelKeys(root.path("channels").path("outgoing")),
+                    replaces);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

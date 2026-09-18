@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  bdi-quarkus-parent: the parent POM of every application on the platform (design note 2.3). Standalone on
+  purpose: it inherits nothing from the repository parent, so an application's own version never leaks into
+  the platform coordinates (the BOM is imported at the explicit bdi.platform.version below). It binds what a
+  governed build must run and an application must not be able to skip:
+    - the RHBQ stream through bdi-quarkus-bom, plus the same plugin versions as the platform itself
+    - the config contract derived from the compiled classes (ContractExporter), then the artifact lint that
+      refuses environment-owned values and secrets in the packaged configuration (ArtifactConfigLint)
+    - dependency governance: no direct Quarkus extension (starters only), no platform artifact at another
+      version; the release pipeline diffs the resolved graph against the BOM for everything else
+    - the fast-jar build, tests, integration tests, and the quarkus-app zip the deploy role installs
+  Applications that cannot inherit it import the BOM and copy the plugin section documented in
+  it/bom-only-app/pom.xml; the release pipeline runs both shapes (it/run.sh).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>it.bancaditalia.quarkus</groupId>
+  <artifactId>bdi-quarkus-parent</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>bdi-quarkus-parent</name>
+  <description>Parent POM of the applications on the Banca d'Italia Quarkus platform: BOM import at a fixed platform version, contract export, artifact lint, dependency governance, packaging.</description>
+
+  <properties>
+    <!-- The platform layer this parent belongs to. Equal to this POM's version: the release job bumps both (it/run.sh checks). -->
+    <bdi.platform.version>1.0.0-SNAPSHOT</bdi.platform.version>
+    <!--
+      RHBQ platform stream: the single place where the Quarkus version is chosen.
+      Value published by code.quarkus.redhat.com for stream 3.33 (LTS), checked on 2026-09-17.
+    -->
+    <quarkus.platform.group-id>com.redhat.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.version>3.33.1.redhat-00006</quarkus.platform.version>
+    <!-- Upstream release the RHBQ build is based on. Used only by the 'community' escape hatch below. -->
+    <quarkus.upstream.version>3.33.1</quarkus.upstream.version>
+    <!-- Extensions outside the platform: their own release cadence, no RHBQ support. Re-check on every stream bump. -->
+    <qpid-jms-extension.version>2.12.0</qpid-jms-extension.version>
+
+    <!-- JDK baseline: Red Hat build of OpenJDK 21. RHBQ 3.33 supports OpenJDK 17, 21 and 25. -->
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <compiler-plugin.version>3.14.1</compiler-plugin.version>
+    <surefire-plugin.version>3.5.6</surefire-plugin.version>
+    <enforcer-plugin.version>3.6.3</enforcer-plugin.version>
+    <jandex-plugin.version>3.6.0</jandex-plugin.version>
+    <assembly-plugin.version>3.7.1</assembly-plugin.version>
+    <exec-plugin.version>3.6.4</exec-plugin.version>
+    <!-- Integration tests (@QuarkusIntegrationTest against the packaged artifact) are opt-in: -DskipITs=false -->
+    <skipITs>true</skipITs>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-quarkus-bom</artifactId>
+        <version>${bdi.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>${quarkus.platform.group-id}</groupId>
+          <artifactId>quarkus-maven-plugin</artifactId>
+          <version>${quarkus.platform.version}</version>
+          <extensions>true</extensions>
+          <executions>
+            <execution>
+              <goals>
+                <goal>build</goal>
+                <goal>generate-code</goal>
+                <goal>generate-code-tests</goal>
+                <goal>native-image-agent</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <!-- Libraries that contribute CDI beans to an application need a Jandex index -->
+          <groupId>io.smallrye</groupId>
+          <artifactId>jandex-maven-plugin</artifactId>
+          <version>${jandex-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>make-index</id>
+              <goals>
+                <goal>jandex</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <!-- Zip of the fast-jar directory: the versioned artifact AAP fetches from Nexus (design note 5) -->
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${assembly-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${compiler-plugin.version}</version>
+          <configuration>
+            <parameters>true</parameters>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${surefire-plugin.version}</version>
+          <configuration>
+            <systemPropertyVariables>
+              <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+              <maven.home>${maven.home}</maven.home>
+            </systemPropertyVariables>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${surefire-plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <systemPropertyVariables>
+              <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+              <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+              <maven.home>${maven.home}</maven.home>
+            </systemPropertyVariables>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <profiles>
+    <profile>
+      <!--
+        The application tooling below binds to every module that has sources, i.e. every application; this POM
+        itself and any pom-packaged aggregator a team adds are left alone. (Packaging activation would be the
+        cleaner trigger; it arrives with Maven 4.) The enforcement point is not this profile but the release
+        pipeline, which builds with its own command line, and the deploy role, which refuses an artifact without
+        META-INF/config-contract.json.
+      -->
+      <id>bdi-application</id>
+      <activation>
+        <file>
+          <exists>${basedir}/src/main</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>${quarkus.platform.group-id}</groupId>
+            <artifactId>quarkus-maven-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <!--
+              1. The platform derives the application's config contract from its compiled classes and the descriptors
+                 of the bdi-config-* modules on its classpath (design note 2.2): nobody writes it.
+              2. The lint then reads every packaged configuration resource against that contract and fails the build
+                 on environment-owned values, secrets and environment profiles (design note 2.1).
+              Both run after compilation, so tests, the packaged artifact and the deploy role see the same contract.
+            -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${exec-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>bdi-config-contract</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <mainClass>it.bancaditalia.quarkus.platform.contract.ContractExporter</mainClass>
+                  <includeProjectDependencies>true</includeProjectDependencies>
+                  <classpathScope>runtime</classpathScope>
+                  <arguments>
+                    <argument>${project.build.outputDirectory}</argument>
+                    <argument>${project.build.outputDirectory}/META-INF/config-contract.json</argument>
+                    <argument>${project.artifactId}</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+              <execution>
+                <id>bdi-config-lint</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <mainClass>it.bancaditalia.quarkus.platform.contract.ArtifactConfigLint</mainClass>
+                  <includeProjectDependencies>true</includeProjectDependencies>
+                  <classpathScope>runtime</classpathScope>
+                  <arguments>
+                    <argument>${project.build.outputDirectory}</argument>
+                    <argument>${project.build.outputDirectory}/META-INF/config-contract.json</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <!-- The fast-jar directory as one versioned zip for Nexus and the deploy role (descriptor from bdi-quarkus-assembly) -->
+            <artifactId>maven-assembly-plugin</artifactId>
+            <dependencies>
+              <dependency>
+                <groupId>it.bancaditalia.quarkus</groupId>
+                <artifactId>bdi-quarkus-assembly</artifactId>
+                <version>${bdi.platform.version}</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>quarkus-app-zip</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptorRefs>
+                    <descriptorRef>quarkus-app</descriptorRef>
+                  </descriptorRefs>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>${enforcer-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>bdi-governance</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireMavenVersion>
+                      <version>[3.9.9,)</version>
+                    </requireMavenVersion>
+                    <requireJavaVersion>
+                      <version>[17,26)</version>
+                    </requireJavaVersion>
+                    <!-- Design note 2.3: a developer never names a Quarkus extension; capabilities come as bdi-* starters -->
+                    <bannedDependencies>
+                      <searchTransitive>false</searchTransitive>
+                      <excludes>
+                        <!-- the Quarkus ecosystem is delivered by the starters and versioned by the BOM -->
+                        <exclude>io.quarkus:*</exclude>
+                        <exclude>io.quarkiverse.*:*</exclude>
+                        <exclude>org.amqphub.quarkus:*</exclude>
+                        <exclude>io.smallrye*:*</exclude>
+                        <exclude>org.hibernate*:*</exclude>
+                        <exclude>org.jboss*:*</exclude>
+                        <exclude>io.vertx:*</exclude>
+                        <exclude>org.eclipse.microprofile*:*</exclude>
+                        <!-- platform artifacts at any version but the platform's: no override of the BOM -->
+                        <exclude>it.bancaditalia.quarkus:*:[0,${bdi.platform.version}),(${bdi.platform.version},)</exclude>
+                      </excludes>
+                      <includes>
+                        <include>io.quarkus:quarkus-junit</include>
+                        <include>io.quarkus:quarkus-junit5-mockito</include>
+                        <include>io.quarkus:quarkus-test-security</include>
+                      </includes>
+                      <message>Quarkus extensions and platform artifacts are not declared or re-versioned by applications: depend on a bdi-* starter at the platform version (bdi-quarkus/README.md); ask the platform team for a missing capability</message>
+                    </bannedDependencies>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!--
+      Default: RHBQ artifacts come from the Red Hat GA repository (they are not on Maven Central).
+      In the bank this repository is mirrored by Nexus/Artifactory; a settings.xml mirror overrides the URL.
+    -->
+    <profile>
+      <id>rhbq</id>
+      <activation>
+        <property>
+          <name>!community</name>
+        </property>
+      </activation>
+      <repositories>
+        <repository>
+          <id>redhat</id>
+          <name>Red Hat GA repository</name>
+          <url>https://maven.repository.redhat.com/ga</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>redhat</id>
+          <name>Red Hat GA repository</name>
+          <url>https://maven.repository.redhat.com/ga</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+
+    <!--
+      Escape hatch: build against the upstream community platform the RHBQ stream is based on, for
+      environments that cannot reach maven.repository.redhat.com. Never for a deliverable: the support
+      contract covers RHBQ bits only.
+          ./mvnw verify -Dcommunity=true
+    -->
+    <profile>
+      <id>community</id>
+      <activation>
+        <property>
+          <name>community</name>
+        </property>
+      </activation>
+      <properties>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.version>${quarkus.upstream.version}</quarkus.platform.version>
+      </properties>
+    </profile>
+
+    <!-- Native is not a target of this programme (design note: native only with a measured reason). Kept for experiments. -->
+    <profile>
+      <id>native</id>
+      <activation>
+        <property>
+          <name>native</name>
+        </property>
+      </activation>
+      <properties>
+        <skipITs>false</skipITs>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+      </properties>
+    </profile>
+  </profiles>
+</project>

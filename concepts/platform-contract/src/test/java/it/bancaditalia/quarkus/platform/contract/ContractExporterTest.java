@@ -46,6 +46,31 @@ class ContractExporterTest {
     }
 
     @Test
+    void descriptorsCarryPhaseConstraintsAndReplacements() {
+        PlatformDescriptor jpa = PlatformDescriptor.parse("""
+                { "module": "bdi-config-jpa", "keys": [
+                    { "name": "quarkus.datasource.jdbc.transactions", "type": "String", "default": "enabled", "phase": "build-time",
+                      "values": ["enabled", "xa", "disabled"], "doc": "fixed" },
+                    { "name": "quarkus.datasource.jdbc.max-size", "type": "int", "default": "20", "min": "1", "max": "500" } ] }
+                """);
+        PlatformDescriptor xa = PlatformDescriptor.parse("""
+                { "module": "bdi-config-jpa-xa", "keys": [
+                    { "name": "quarkus.datasource.jdbc.transactions", "type": "String", "default": "xa", "phase": "build-time", "replaces": true } ] }
+                """);
+        ConfigContract.Builder builder = ConfigContract.builder();
+        jpa.keys().forEach(builder::addIfAbsent);
+        xa.keys().forEach(k -> { if (xa.replaces(k)) builder.replace(k); else builder.addIfAbsent(k); });
+        ConfigContract contract = builder.build();
+        ConfigContract.Key transactions = contract.key("quarkus.datasource.jdbc.transactions").orElseThrow();
+        assertEquals(Optional.of("xa"), transactions.defaultValue());
+        assertTrue(transactions.buildTime());
+        assertEquals(Optional.of("1"), contract.key("quarkus.datasource.jdbc.max-size").orElseThrow().constraints().min());
+        ConfigContract back = ConfigContract.fromJson(contract.toJson());
+        assertEquals(contract.keys(), back.keys(), "phase and constraints survive the JSON round trip");
+        assertTrue(contract.toJson().contains("\"phase\": \"build-time\""));
+    }
+
+    @Test
     void channelTemplatesAreSubstituted() {
         PlatformDescriptor.ChannelKey template = new PlatformDescriptor.ChannelKey("topic", "String", false,
                 Optional.of("{application}-{channel}"), false, "topic");

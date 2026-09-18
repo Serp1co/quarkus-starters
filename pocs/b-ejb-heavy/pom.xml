@@ -5,10 +5,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
+    <!-- The application parent: contract export, lint, governance and packaging come from it, nothing is declared here -->
     <groupId>it.bancaditalia.quarkus</groupId>
-    <artifactId>quarkus-starters</artifactId>
+    <artifactId>bdi-quarkus-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <relativePath>../../bdi-quarkus/parent/pom.xml</relativePath>
   </parent>
 
   <artifactId>poc-b-ejb-heavy</artifactId>
@@ -30,6 +31,10 @@
     </dependency>
     <dependency>
       <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-jpa-xa</artifactId>             <!-- the EAP xa-data-source: XA fixed at build time, recovery keys at runtime -->
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
       <artifactId>bdi-flyway-postgresql</artifactId>  <!-- the application owns its schema, Quartz tables included -->
     </dependency>
     <dependency>
@@ -46,33 +51,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>${quarkus.platform.group-id}</groupId>
-        <artifactId>quarkus-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <artifactId>maven-failsafe-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>quarkus-app-zip</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/quarkus-app.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

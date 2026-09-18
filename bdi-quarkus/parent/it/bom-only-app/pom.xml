@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  An application that cannot inherit bdi-quarkus-parent (it has a corporate parent of its own, for instance):
+  it imports the BOM and copies this plugin section verbatim. The release pipeline treats a missing
+  META-INF/config-contract.json as a build error, so the two exec executions are not optional.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>it.bancaditalia.apps</groupId>
+  <artifactId>bom-only-app</artifactId>
+  <version>3.0.0</version>
+  <name>bom-only-app</name>
+
+  <properties>
+    <bdi.platform.version>1.0.0-SNAPSHOT</bdi.platform.version>
+    <quarkus.platform.group-id>com.redhat.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.version>3.33.1.redhat-00006</quarkus.platform.version>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <skipITs>true</skipITs>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-quarkus-bom</artifactId>
+        <version>${bdi.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-rest-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-observability</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+              <goal>generate-code</goal>
+              <goal>generate-code-tests</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.14.1</version>
+        <configuration>
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.6</version>
+        <configuration>
+          <systemPropertyVariables>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <!-- Mandatory platform tooling, copied from bdi-quarkus-parent: contract export, then the artifact lint -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.6.4</version>
+        <executions>
+          <execution>
+            <id>bdi-config-contract</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>it.bancaditalia.quarkus.platform.contract.ContractExporter</mainClass>
+              <includeProjectDependencies>true</includeProjectDependencies>
+              <classpathScope>runtime</classpathScope>
+              <arguments>
+                <argument>${project.build.outputDirectory}</argument>
+                <argument>${project.build.outputDirectory}/META-INF/config-contract.json</argument>
+                <argument>${project.artifactId}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bdi-config-lint</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>it.bancaditalia.quarkus.platform.contract.ArtifactConfigLint</mainClass>
+              <includeProjectDependencies>true</includeProjectDependencies>
+              <classpathScope>runtime</classpathScope>
+              <arguments>
+                <argument>${project.build.outputDirectory}</argument>
+                <argument>${project.build.outputDirectory}/META-INF/config-contract.json</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <!-- RHBQ artifacts: the Red Hat GA repository (mirrored by Nexus in the bank); -Dcommunity=true for the upstream stream -->
+      <id>rhbq</id>
+      <activation>
+        <property>
+          <name>!community</name>
+        </property>
+      </activation>
+      <repositories>
+        <repository>
+          <id>redhat</id>
+          <url>https://maven.repository.redhat.com/ga</url>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>redhat</id>
+          <url>https://maven.repository.redhat.com/ga</url>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+    <profile>
+      <id>community</id>
+      <activation>
+        <property>
+          <name>community</name>
+        </property>
+      </activation>
+      <properties>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.version>3.33.1</quarkus.platform.version>
+      </properties>
+    </profile>
+  </profiles>
+</project>

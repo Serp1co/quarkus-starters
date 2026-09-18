@@ -1,20 +1,28 @@
 ---
 # 6. The conformance check of design note 3: same artifact, same contract, on every stage. Reads what the
-#    running instance says about itself, not what the playbook thinks it did.
+#    running instance says about itself, not what the playbook thinks it did, and compares it with what was
+#    approved: version and profile, every rendered value in effect and coming from the platform's files (not
+#    shadowed by a JVM property or an environment variable), nothing set from outside the platform, the
+#    configuration revision just rendered, no contract violation. Secrets: presence and source only.
 - name: Read /q/platform
   ansible.builtin.uri:
     url: "http://{{ bdi_verify_host }}:{{ bdi_management_port }}/q/platform"
     return_content: true
   register: bdi_platform
 
+- name: Compare the running configuration with the approved one
+  ansible.builtin.set_fact:
+    bdi_conformance: "{{ bdi_platform.json | bdi_verify(bdi_rendered.config, bdi_env, bdi_version, bdi_config_revision) }}"
+
 - name: Conformance
   ansible.builtin.assert:
-    that:
-      - bdi_platform.json.application.version == bdi_version
-      - bdi_env in bdi_platform.json.application.profiles
-      - bdi_platform.json.missing | length == 0
-    fail_msg: "running {{ bdi_platform.json.application }} with missing keys {{ bdi_platform.json.missing }}, expected {{ bdi_version }} in {{ bdi_env }}"
-    success_msg: "{{ bdi_platform.json.application.name }} {{ bdi_platform.json.application.version }} in {{ bdi_platform.json.application.profiles }}, contract complete"
+    that: bdi_conformance | length == 0
+    fail_msg: "{{ bdi_app }} {{ bdi_version }} in {{ bdi_env }} does not conform: {{ bdi_conformance }}"
+    success_msg: >-
+      {{ bdi_platform.json.application.name }} {{ bdi_platform.json.application.version }} in
+      {{ bdi_platform.json.application.profiles }} on platform {{ bdi_platform.json.platform.version }},
+      contract {{ bdi_platform.json.platform.contractRevision[:12] }}, configuration {{ bdi_platform.json.revision.config[:12] }},
+      secrets delivered {{ bdi_platform.json.revision.secrets }}: conforms
 
 - name: Where each contract key came from
   ansible.builtin.debug:

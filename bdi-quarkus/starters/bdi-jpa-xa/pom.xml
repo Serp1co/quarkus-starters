@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>bdi-jpa-xa</artifactId>
+  <name>Starter: bdi-jpa-xa</name>
+  <description>XA transactions on the application datasource (the EAP xa-data-source), a build-time choice: add it next to bdi-jpa-postgresql, bdi-jpa-oracle or bdi-jpa-db2 when a transaction spans the database and another XA resource. The deploy role refuses an xa-data-source fragment for an artifact built without it.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-config-jpa-xa</artifactId>
+    </dependency>
+  </dependencies>
+</project>

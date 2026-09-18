@@ -60,8 +60,9 @@ public final class ContractExporter {
                 }
                 channels(type, incoming, outgoing);
                 roles(type, roles);
-            } catch (Throwable ignored) {
-                // a class that cannot be loaded here (optional dependency, generated code) has no contract to give
+            } catch (ClassNotFoundException | LinkageError e) {
+                // an incomplete contract is worse than a failed build: the platform would render too little
+                throw new IllegalStateException("cannot load " + name + " from " + classes + " to derive the contract: " + e, e);
             }
         }
         mappings.sort(java.util.Comparator.comparing(Class::getName));
@@ -72,7 +73,13 @@ public final class ContractExporter {
         }
         roles.forEach(builder::role);
         for (PlatformDescriptor descriptor : PlatformDescriptor.load(loader)) {
-            descriptor.keys().forEach(builder::addIfAbsent);
+            for (ConfigContract.Key key : descriptor.keys()) {
+                if (descriptor.replaces(key)) {
+                    builder.replace(key);
+                } else {
+                    builder.addIfAbsent(key);
+                }
+            }
             for (String channel : incoming) {
                 descriptor.incoming().forEach(k -> builder.addIfAbsent(k.forChannel("incoming", channel, application)));
             }

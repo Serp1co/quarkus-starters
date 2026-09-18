@@ -1,7 +1,6 @@
 package it.bancaditalia.quarkus.platform.contract;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -13,48 +12,77 @@ import org.junit.jupiter.api.io.TempDir;
 
 class ArtifactConfigLintTest {
 
+    private static final ConfigContract CONTRACT = ConfigContract.builder()
+            .platform("quarkus.datasource.jdbc.url", "String", true, "db")
+            .platformSecret("quarkus.datasource.password", "db password")
+            .platform("quarkus.http.port", "int", "8080", "port")
+            .addIfAbsent(new ConfigContract.Key("quarkus.quartz.clustered", "boolean", false, java.util.Optional.of("true"), false,
+                    ConfigContract.Owner.PLATFORM, "", ConfigContract.Phase.BUILD_TIME, ConfigContract.Constraints.NONE))
+            .addIfAbsent(new ConfigContract.Key("quarkus.datasource.*.password", "String", false, java.util.Optional.empty(), true,
+                    ConfigContract.Owner.PLATFORM, "named datasource password"))
+            .addIfAbsent(new ConfigContract.Key("ledger.currency", "String", false, java.util.Optional.of("EUR"), false,
+                    ConfigContract.Owner.APPLICATION, ""))
+            .build();
+
     @Test
-    void flagsEveryProfileSectionButDevAndTestInYaml(@TempDir Path dir) throws IOException {
-        Path file = dir.resolve("application.yaml");
-        Files.writeString(file, """
-                # "%prod": commented out
+    void refusesEnvironmentOwnedValuesAndSecretsOutsideTheInnerLoop(@TempDir Path classes) throws IOException {
+        Files.writeString(classes.resolve("application.yaml"), """
                 quarkus:
-                  management:
-                    enabled: true
+                  quartz:
+                    clustered: true            # build-time: allowed
+                  hibernate-orm:
+                    cache:
+                      "it.example.Type":
+                        expiration:
+                          max-idle: 10M        # unknown Quarkus key: accepted, noted
+                  http:
+                    port: 8081                 # platform runtime key: refused
+                  datasource:
+                    jdbc:
+                      url: jdbc:postgresql://prod-db/ledger   # platform runtime key: refused
+                    password: hunter2          # secret: refused
+                    reporting:
+                      password: hunter3        # secret by wildcard: refused
+                ledger:
+                  currency: EUR                # application default: allowed
+                  api-token: abc               # looks like a secret: refused
                 "%dev":
                   quarkus:
-                    log:
-                      level: DEBUG
-                "%dev,test":
-                  ledger:
-                    transfer:
-                      max-amount: "10"
+                    datasource:
+                      password: dev            # inner loop: allowed
                 "%prod":
                   quarkus:
-                    datasource:
-                      jdbc:
-                        url: jdbc:postgresql://db/prod
-                '%uat':
-                  ledger:
-                    currency: EUR
+                    log:
+                      level: DEBUG             # environment profile: refused
                 """);
-        assertEquals(List.of("13: \"%prod\":", "18: '%uat':"), ArtifactConfigLint.findBannedProfileKeys(file));
-        AssertionError error = assertThrows(AssertionError.class,
-                () -> ArtifactConfigLint.assertNoBannedProfileKeys(file));
-        assertTrue(error.getMessage().contains("'%uat':"));
+        Files.writeString(classes.resolve("application-uat.properties"), "quarkus.http.port=9090\n");
+        ArtifactConfigLint.Report report = ArtifactConfigLint.lint(classes, CONTRACT);
+        List<String> violations = report.violations();
+        assertTrue(violations.stream().anyMatch(v -> v.contains("quarkus.http.port") && v.contains("runtime")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.contains("quarkus.datasource.jdbc.url")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.contains("quarkus.datasource.password") && v.contains("contract")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.contains("quarkus.datasource.reporting.password")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.contains("ledger.api-token") && v.contains("looks like")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.contains("%prod.quarkus.log.level")), violations.toString());
+        assertTrue(violations.stream().anyMatch(v -> v.contains("application-uat.properties")), violations.toString());
+        assertEquals(7, violations.size(), violations.toString());
+        assertTrue(report.notes().stream().anyMatch(n -> n.contains("max-idle")), report.notes().toString());
+        assertTrue(violations.stream().noneMatch(v -> v.contains("clustered") || v.contains("currency") || v.contains("%dev")), violations.toString());
     }
 
     @Test
-    void stillUnderstandsPropertiesFiles(@TempDir Path dir) throws IOException {
-        Path file = dir.resolve("application.properties");
-        Files.writeString(file, "%dev.a=1\n%dev,test.b=2\n%prod.c=3\nd=4\n");
-        assertEquals(List.of("3: %prod.c=3"), ArtifactConfigLint.findBannedProfileKeys(file));
+    void stillUnderstandsPropertiesFilesAndProfileLists(@TempDir Path classes) throws IOException {
+        Files.writeString(classes.resolve("application.properties"), "%dev,test.a=1\n%uat.b=2\nquarkus.http.port=8080\n");
+        List<String> violations = ArtifactConfigLint.lint(classes, CONTRACT).violations();
+        assertEquals(2, violations.size(), violations.toString());
+        assertTrue(violations.get(0).contains("uat") || violations.get(1).contains("uat"), violations.toString());
     }
 
     @Test
-    void acceptsInnerLoopOnlyFiles(@TempDir Path dir) throws IOException {
-        Path file = dir.resolve("application.yaml");
-        Files.writeString(file, "\"%dev\":\n  a: 1\n\"%test\":\n  b: 2\nc: 3\n");
-        ArtifactConfigLint.assertNoBannedProfileKeys(file);
+    void acceptsAnInnerLoopOnlyArtifact(@TempDir Path classes) throws IOException {
+        Files.writeString(classes.resolve("application.yaml"), "\"%dev\":\n  quarkus:\n    http:\n      port: 8081\n\"%test\":\n  ledger:\n    currency: USD\n");
+        ArtifactConfigLint.Report report = ArtifactConfigLint.lint(classes, CONTRACT);
+        assertEquals(List.of(), report.violations());
+        assertEquals(2, report.checked());
     }
 }

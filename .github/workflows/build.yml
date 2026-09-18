@@ -20,3 +20,10 @@ jobs:
       # @QuarkusIntegrationTest classes against the packaged fast-jar.
       - name: Verify
         run: ./mvnw -B -ntp verify -DskipITs=false
+      # The application parent, as applications outside this repository use it: install the platform, then
+      # build a sample with its own version through the parent and another through the BOM, and prove the
+      # governance refusals (packaged secret, direct extension, version override).
+      - name: Install the platform for the out-of-reactor samples
+        run: ./mvnw -B -ntp install -DskipTests
+      - name: Applications outside the reactor (bdi-quarkus-parent and BOM-only)
+        run: bdi-quarkus/parent/it/run.sh

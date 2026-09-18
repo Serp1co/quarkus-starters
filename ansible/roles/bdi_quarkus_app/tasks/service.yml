@@ -8,6 +8,17 @@
     mode: "0644"
   notify: restart application
 
+- name: Is systemd-analyze available
+  ansible.builtin.stat:
+    path: /usr/bin/systemd-analyze
+  register: bdi_systemd_analyze
+
+- name: Validate the rendered unit and its environment file before daemon-reload
+  ansible.builtin.command:
+    argv: [/usr/bin/systemd-analyze, verify, "/etc/systemd/system/bdi-{{ bdi_app }}.service"]
+  changed_when: false
+  when: bdi_systemd_analyze.stat.exists
+
 - name: Flush handlers (restart now, not at the end of the play)
   ansible.builtin.meta: flush_handlers
 

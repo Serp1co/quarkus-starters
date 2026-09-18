@@ -1,10 +1,12 @@
 # The same fragment ops write today for an EAP datasource, minus what the artifact decides itself
-# (driver and XA come from the bdi-jpa-* starter the developer chose; jndi and artifacts have no equivalent:
+# (the driver comes from the bdi-jpa-* starter the developer chose; jndi and artifacts have no equivalent:
 # the application binds to the logical datasource, and the file belongs to one application directory).
-# The role translates this vocabulary into quarkus.datasource.* keys.
+# The role translates this vocabulary into quarkus.datasource.* keys. type: xa-data-source is not rendered
+# either: XA is fixed at build time (bdi-jpa-xa starter), and the validation refuses the fragment for an
+# artifact built without it. POC A runs local transactions; POC B is the XA one.
 kind: datasource
 name: default
-type: xa-data-source
+type: datasource
 driver: postgresql
 url: "jdbc:postgresql://127.0.0.1:5432/poc"
 user: "${fromvault.app.USERNAME}"

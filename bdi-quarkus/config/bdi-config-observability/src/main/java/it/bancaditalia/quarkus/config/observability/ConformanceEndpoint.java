@@ -15,7 +15,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * {@code GET /q/platform} on the management port: the post-deploy conformance check of the design notes
- * (version, active profile, config-source echo of every contract key, missing required keys), so that
+ * (version, active profile, platform version and contract revision, the revision of the rendered configuration
+ * and of the secrets delivery, config-source echo of every contract key, missing required keys, values that
+ * violate their type or constraints), so that
  * "same artifact, same contract" is a test on every stage of the target ladder. Secrets are masked. The
  * management port is firewalled by the platform to ops and the load balancer.
  */
@@ -24,6 +26,9 @@ public class ConformanceEndpoint {
 
     @Inject
     ConfigContract contract;
+
+    @Inject
+    ContractLoader.ContractInfo info;
 
     @Inject
     Config config;
@@ -50,7 +55,14 @@ public class ConformanceEndpoint {
                     "name", applicationName,
                     "version", applicationVersion,
                     "profiles", ConfigUtils.getProfiles()));
+            body.put("platform", Map.of(
+                    "version", info.platformVersion(),
+                    "contractRevision", info.revision()));
+            body.put("revision", Map.of(
+                    "config", config.getOptionalValue("bdi.config.revision", String.class).orElse(""),
+                    "secrets", config.getOptionalValue("bdi.secrets.revision", String.class).orElse("")));
             body.put("missing", contract.missing(config));
+            body.put("violations", contract.violations(config));
             body.put("config", contract.echo(config));
             if (!contract.roles().isEmpty()) {
                 body.put("roles", contract.roleMappings(config)); // role -> groups the platform mapped to it
