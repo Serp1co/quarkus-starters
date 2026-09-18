@@ -1,0 +1,29 @@
+# =============================================================================
+# POC remote EJB, provider - developer-owned configuration (design notes 2.1, 2.2).
+# Only "%dev" / "%test" inner-loop values. The realm, the client and the
+# realm-roles -> application-roles mapping are platform keys per environment.
+# =============================================================================
+"%dev":
+  registry:
+    unit: "Anagrafe Controparti (dev)"
+  quarkus:
+    http:
+      auth:
+        roles-mapping:
+          "app-readers": registry-reader
+          "app-services": registry-reader,registry-writer
+"%test":
+  registry:
+    unit: "Anagrafe Controparti (test)"
+  quarkus:
+    http:
+      auth:
+        roles-mapping:
+          "app-readers": registry-reader
+          "app-services": registry-reader,registry-writer
+    grpc:
+      clients:
+        counterparty:              # the gRPC test calls the service through a real client on the test port
+          host: localhost
+          port: 8081
+          plain-text: true

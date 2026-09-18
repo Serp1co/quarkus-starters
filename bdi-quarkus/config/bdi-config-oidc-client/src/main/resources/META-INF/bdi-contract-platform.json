@@ -1,0 +1,8 @@
+{
+  "module": "bdi-config-oidc-client",
+  "keys": [
+    { "name": "quarkus.oidc-client.auth-server-url", "type": "String", "required": true, "pattern": "^https?://.+", "doc": "Base URL of the RHBK realm that issues the application's own tokens (usually the inbound realm)" },
+    { "name": "quarkus.oidc-client.client-id", "type": "String", "required": true, "doc": "The application's client in the realm (service account enabled)" },
+    { "name": "quarkus.oidc-client.credentials.secret", "type": "String", "required": true, "secret": true, "doc": "The client secret, from the vault" }
+  ]
+}

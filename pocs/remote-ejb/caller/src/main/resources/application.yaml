@@ -1,0 +1,41 @@
+# =============================================================================
+# POC remote EJB, caller - developer-owned configuration (design notes 2.1, 2.2).
+# Only "%dev" / "%test" inner-loop values. The provider's URL and gRPC host, the
+# realm, the application's own client and the roles mapping are platform keys.
+# =============================================================================
+"%dev":
+  reports:
+    unit: "Segnalazioni (dev)"
+  quarkus:
+    rest-client:
+      counterparty:
+        url: http://localhost:8080
+    grpc:
+      clients:
+        counterparty:
+          host: localhost
+          port: 8080
+          plain-text: true
+    http:
+      port: 8090
+      auth:
+        roles-mapping:
+          "app-reporters": reporter
+"%test":
+  reports:
+    unit: "Segnalazioni (test)"
+  quarkus:
+    rest-client:
+      counterparty:
+        url: http://localhost:8081      # the stub provider in src/test, on the caller's own test port
+    grpc:
+      clients:
+        counterparty:
+          host: localhost
+          port: 8081
+          plain-text: true
+    http:
+      auth:
+        roles-mapping:
+          "app-reporters": reporter,registry-reader        # the stub provider needs the registry roles too
+          "app-services": registry-reader,registry-writer

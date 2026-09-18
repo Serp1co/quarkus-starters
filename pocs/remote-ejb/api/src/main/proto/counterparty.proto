@@ -1,0 +1,32 @@
+// The typed contract of the counterparty registry: on EAP this was the @Remote interface; here the .proto is
+// the interface, generated into stubs for both sides. Field numbers are the API: never reuse them.
+syntax = "proto3";
+
+package bdi.counterparty.v1;
+
+option java_package = "it.bancaditalia.quarkus.poc.remote.api.grpc";
+option java_multiple_files = true;
+
+service CounterpartyRegistry {
+  rpc Find (FindRequest) returns (CounterpartyReply);
+  rpc Register (RegisterRequest) returns (CounterpartyReply);
+}
+
+message FindRequest {
+  string code = 1;
+}
+
+message RegisterRequest {
+  string code = 1;
+  string name = 2;
+  string country = 3;
+  string idempotency_key = 4;   // the caller's own id of the operation: a retry with the same key is not a second registration
+}
+
+message CounterpartyReply {
+  string code = 1;
+  string name = 2;
+  string country = 3;
+  string status = 4;
+  bool created = 5;             // false when the idempotency key was seen before
+}

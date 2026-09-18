@@ -1,0 +1,12 @@
+# Standardized defaults of bdi-config-rest-client (ordinal 100). The URL of each client is a contract key
+# derived per @RestClient injection point; timeouts here are the floor every outbound call gets.
+quarkus:
+  rest-client:
+    connect-timeout: 3000      # ms: a remote that does not answer the handshake fails fast (EAP: the remote+http ejb-client timeouts)
+    read-timeout: 10000        # ms: no synchronous call waits longer than the caller's own request budget
+"%dev":
+  quarkus:
+    rest-client:
+      logging:
+        scope: request-response
+        body-limit: 1024

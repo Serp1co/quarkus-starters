@@ -207,6 +207,41 @@
       </dependency>
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-rest-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-oidc-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-grpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-rest-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-rest-client-oidc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-grpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>poc-remote-ejb-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-test</artifactId>
         <version>${project.version}</version>
       </dependency>

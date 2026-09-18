@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The replacement of the remote-interface jar (design note 4.2): what caller and provider share. The REST client
+  interface and its DTOs (the default), the .proto and its generated stubs (the typed contract). Versioned and
+  published like the EJB client jar was; a library, so it inherits the repository parent, not the application one.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>poc-remote-ejb-api</artifactId>
+  <name>POC remote EJB: API (the remote interface jar)</name>
+
+  <dependencies>
+    <!--
+      Optional on purpose: this jar carries interfaces and stubs, not the extensions behind them. The caller adds
+      bdi-rest-client-oidc and bdi-grpc, the provider adds bdi-grpc; neither inherits the other's platform keys.
+    -->
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-rest-client-oidc</artifactId>   <!-- the client interfaces: REST Client API, @AccessToken, @OidcClientFilter -->
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-grpc</artifactId>               <!-- the stubs generated from the .proto -->
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId> <!-- the constraints on the DTOs, validated by the provider -->
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- the Jandex index: Quarkus finds the generated stubs and the client interfaces through it -->
+        <groupId>io.smallrye</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <!-- only the code generation: the stubs of src/main/proto; this jar is not an application -->
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate-code</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

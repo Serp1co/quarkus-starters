@@ -1,0 +1,9 @@
+{
+  "module": "bdi-config-rest-client",
+  "keys": [],
+  "rest-clients": [
+    { "suffix": "url", "type": "String", "required": true, "pattern": "^https?://.+", "doc": "Base URL of the {client} service in this environment (EAP: the remote+http outbound connection)" },
+    { "suffix": "connect-timeout", "type": "long", "default": "3000", "min": "100", "max": "60000", "doc": "Connection timeout in ms for {client}" },
+    { "suffix": "read-timeout", "type": "long", "default": "10000", "min": "100", "max": "600000", "doc": "Read timeout in ms for {client}" }
+  ]
+}

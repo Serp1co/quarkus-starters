@@ -15,7 +15,9 @@ import java.util.Optional;
 /**
  * What a bdi-config-* module declares for the platform, in its {@code META-INF/bdi-contract-platform.json}:
  * the Quarkus keys of the extensions it configures, and the key templates of the messaging channels the
- * application declares ({@code {channel}} and {@code {application}} are substituted by the exporter).
+ * application declares ({@code {channel}} and {@code {application}} are substituted by the exporter), and likewise
+ * {@code rest-clients} / {@code grpc-clients} templates for every REST client and gRPC client the application injects
+ * ({@code {client}} substituted).
  * <pre>
  * { "module": "bdi-config-jpa",
  *   "keys": [ { "name": "quarkus.datasource.jdbc.url", "type": "String", "required": true, "doc": "..." } ],
@@ -24,7 +26,10 @@ import java.util.Optional;
  * </pre>
  */
 public record PlatformDescriptor(String module, List<ConfigContract.Key> keys, List<ChannelKey> incoming,
-        List<ChannelKey> outgoing, List<String> replaces) {
+        List<ChannelKey> outgoing, List<String> replaces, List<ChannelKey> restClients, List<ChannelKey> grpcClients) {
+
+    public static final String REST_CLIENT_PREFIX = "quarkus.rest-client.";
+    public static final String GRPC_CLIENT_PREFIX = "quarkus.grpc.clients.";
 
     /** A key may carry {@code "phase": "build-time"}, {@code "min"/"max"/"pattern"/"values"/"required-if"}, and
      *  {@code "replaces": true} when a variation module overrides the key of the module it builds on. */
@@ -35,12 +40,22 @@ public record PlatformDescriptor(String module, List<ConfigContract.Key> keys, L
     public static final String RESOURCE = "META-INF/bdi-contract-platform.json";
 
     public record ChannelKey(String suffix, String type, boolean required, Optional<String> defaultValue, boolean secret,
-            String doc) {
+            String doc, ConfigContract.Constraints constraints) {
+
+        public ChannelKey(String suffix, String type, boolean required, Optional<String> defaultValue, boolean secret, String doc) {
+            this(suffix, type, required, defaultValue, secret, doc, ConfigContract.Constraints.NONE);
+        }
 
         ConfigContract.Key forChannel(String direction, String channel, String application) {
-            String name = "mp.messaging." + direction + "." + channel + "." + suffix;
-            Optional<String> value = defaultValue.map(d -> d.replace("{channel}", channel).replace("{application}", application));
-            return new ConfigContract.Key(name, type, required, value, secret, ConfigContract.Owner.PLATFORM, doc);
+            return forName("mp.messaging." + direction + ".", channel, application);
+        }
+
+        /** A key template instantiated for a named resource: {@code <prefix><name>.<suffix>}, the name quoted if it has dots. */
+        ConfigContract.Key forName(String prefix, String name, String application) {
+            String key = prefix + (name.contains(".") ? "\"" + name + "\"" : name) + "." + suffix;
+            Optional<String> value = defaultValue.map(d -> d.replace("{channel}", name).replace("{client}", name).replace("{application}", application));
+            return new ConfigContract.Key(key, type, required, value, secret, ConfigContract.Owner.PLATFORM,
+                    doc.replace("{channel}", name).replace("{client}", name), ConfigContract.Phase.RUNTIME, constraints);
         }
     }
 
@@ -58,7 +73,7 @@ public record PlatformDescriptor(String module, List<ConfigContract.Key> keys, L
             }
             return new PlatformDescriptor(root.path("module").asText("?"), keys,
                     channelKeys(root.path("channels").path("incoming")), channelKeys(root.path("channels").path("outgoing")),
-                    replaces);
+                    replaces, channelKeys(root.path("rest-clients")), channelKeys(root.path("grpc-clients")));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -67,9 +82,9 @@ public record PlatformDescriptor(String module, List<ConfigContract.Key> keys, L
     private static List<ChannelKey> channelKeys(JsonNode array) {
         List<ChannelKey> out = new ArrayList<>();
         for (JsonNode k : array) {
-            out.add(new ChannelKey(k.path("suffix").asText(), k.path("type").asText("String"), k.path("required").asBoolean(false),
-                    k.hasNonNull("default") ? Optional.of(k.path("default").asText()) : Optional.empty(),
-                    k.path("secret").asBoolean(false), k.path("doc").asText("")));
+            ConfigContract.Key parsed = ConfigContract.keyFromJson(k, ConfigContract.Owner.PLATFORM); // constraints, default, secret
+            out.add(new ChannelKey(k.path("suffix").asText(), parsed.type(), parsed.required(), parsed.defaultValue(),
+                    parsed.secret(), parsed.doc(), parsed.constraints()));
         }
         return out;
     }

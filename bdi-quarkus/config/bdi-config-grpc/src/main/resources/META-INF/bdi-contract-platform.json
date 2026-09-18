@@ -1,0 +1,11 @@
+{
+  "module": "bdi-config-grpc",
+  "keys": [
+    { "name": "quarkus.grpc.server.use-separate-server", "type": "boolean", "default": "false", "phase": "build-time", "doc": "gRPC served by the unified HTTP server (fixed at build time): one port, one authentication" }
+  ],
+  "grpc-clients": [
+    { "suffix": "host", "type": "String", "required": true, "doc": "Host of the {client} gRPC service in this environment" },
+    { "suffix": "port", "type": "int", "default": "8080", "min": "1", "max": "65535", "doc": "Port of the {client} service: its unified HTTP port" },
+    { "suffix": "plain-text", "type": "boolean", "default": "false", "doc": "true only where TLS is terminated before the service (inner loop, sidecar)" }
+  ]
+}

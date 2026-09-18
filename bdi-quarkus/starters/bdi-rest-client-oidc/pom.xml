@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>bdi-rest-client-oidc</artifactId>
+  <name>Starter: bdi-rest-client-oidc</name>
+  <description>Identity on outbound REST calls: the caller's bearer token propagated (@AccessToken, the user acts through the application) or the application's own token from its RHBK client (@OidcClientFilter, client credentials), configured by bdi-config-oidc-client. Builds on bdi-rest-client.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-rest-client</artifactId>
+    </dependency>    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-client-oidc-token-propagation</artifactId>
+    </dependency>    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-client-oidc-filter</artifactId>
+    </dependency>    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-oidc-client</artifactId>
+    </dependency>    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-config-oidc-client</artifactId>
+    </dependency>  </dependencies>
+</project>

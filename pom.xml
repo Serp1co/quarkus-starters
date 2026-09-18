@@ -26,6 +26,9 @@
     <module>pocs/data-hibernate-panache</module>
     <module>pocs/security-ldap</module>
     <module>pocs/security-oidc</module>
+    <module>pocs/remote-ejb/api</module>
+    <module>pocs/remote-ejb/provider</module>
+    <module>pocs/remote-ejb/caller</module>
   </modules>
 
   <properties>
@@ -233,6 +236,41 @@
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-test-oidc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-rest-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-oidc-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-grpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-rest-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-rest-client-oidc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-grpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>poc-remote-ejb-api</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

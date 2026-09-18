@@ -26,6 +26,9 @@ bdi-quarkus/
   config/bdi-config-security   path policies, group-to-role mapping key, audit log of security events (shared)
   config/bdi-config-security-ldap   Elytron LDAP realm shaped for Active Directory, Basic auth, directory keys
   config/bdi-config-security-oidc   quarkus-oidc shaped for the Red Hat build of Keycloak, realm keys
+  config/bdi-config-rest-client     outbound REST: timeouts, one URL key per injected client
+  config/bdi-config-oidc-client     the application's own RHBK client (client credentials) for calls as itself
+  config/bdi-config-grpc            gRPC on the unified server, one host/port per injected client, bearer propagation
   starters/bdi-*               empty jars whose dependency set is the point
 ```
 
@@ -49,6 +52,9 @@ bdi-quarkus/
 | `bdi-jpa-audit` | `quarkus-hibernate-envers` (`@Audited` history) | `bdi-config-audit` | supported |
 | `bdi-security-ldap` | `quarkus-elytron-security-ldap` (Basic auth, AD-shaped realm) | `bdi-config-security-ldap` + `bdi-config-security` | supported |
 | `bdi-security-oidc` | `quarkus-oidc` (bearer tokens from RHBK) | `bdi-config-security-oidc` + `bdi-config-security` | supported |
+| `bdi-rest-client` | `quarkus-rest-client-jackson` (the default remote-EJB replacement) | `bdi-config-rest-client`: timeouts; `quarkus.rest-client.<client>.*` keys derived per `@RestClient` injection | supported |
+| `bdi-rest-client-oidc` | `quarkus-rest-client-oidc-token-propagation` (`@AccessToken`), `quarkus-rest-client-oidc-filter` + `quarkus-oidc-client` (`@OidcClientFilter`) | `bdi-config-oidc-client`: `quarkus.oidc-client.*` keys | supported |
+| `bdi-grpc` | `quarkus-grpc` (services and clients, the `.proto` as the interface) | `bdi-config-grpc`: unified server (build-time), `quarkus.grpc.clients.<client>.*` keys derived per `@GrpcClient`, bearer propagation interceptor | supported |
 | `bdi-test` (test scope) | `quarkus-junit`, `quarkus-junit5-mockito` (`@InjectMock`), `quarkus-test-security` (`@TestSecurity`), `rest-assured` | | supported |
 | `bdi-test-ldap` (test scope) | `quarkus-test-ldap` + `AdLikeDirectory`: an in-memory Active Directory look-alike that returns the LDAP platform keys | | supported |
 | `bdi-test-oidc` (test scope) | `quarkus-test-oidc-server` + `RhbkLikeRealm`: a mock realm that returns the OIDC platform keys and mints RHBK-shaped tokens | | supported |
@@ -74,6 +80,7 @@ confirmed against the RHBQ supported-configurations list, design note §9):
 | Relational data | PostgreSQL, Oracle, Db2 | `bdi-jpa-postgresql`, `bdi-jpa-oracle`, `bdi-jpa-db2` (done); `bdi-flyway-postgresql` (done), `bdi-flyway-oracle`, Db2 to check; capabilities on top of any of them: `bdi-jpa-panache`, `bdi-jpa-audit` (done) |
 | Timers | clustered Quartz on the database | `bdi-scheduler` (done) |
 | Queues and topics | AMQ Broker over AMQP 1.0 (Reactive Messaging or JMS), IBM MQ (JMS, resource adapter: Quarkiverse, unsupported), Kafka / AMQ Streams | `bdi-messaging-amqp`, `bdi-jms-amqp`, `bdi-messaging-kafka` (done); `bdi-jms-ibmmq`, `bdi-kafka-streams` planned |
+| Outbound calls | REST (user token or service identity), gRPC | `bdi-rest-client`, `bdi-rest-client-oidc`, `bdi-grpc` (done); messaging for fire-and-forget |
 | Inbound identity | Active Directory / LDAP (Elytron), Red Hat build of Keycloak (OIDC) | `bdi-security-ldap`, `bdi-security-oidc` (done), sharing `bdi-config-security`: path policies, `roles-mapping.*`, audit log |
 | Secrets | CyberArk, HashiCorp Vault, rendered file (AAP) | `bdi-secrets-cyberark`, `bdi-secrets-vault`, the file path of `bdi-config-core` |
 | SOAP | Quarkus CXF | `bdi-soap-cxf` |

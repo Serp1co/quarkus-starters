@@ -36,6 +36,9 @@
     <module>config/bdi-config-security</module>
     <module>config/bdi-config-security-ldap</module>
     <module>config/bdi-config-security-oidc</module>
+    <module>config/bdi-config-rest-client</module>
+    <module>config/bdi-config-oidc-client</module>
+    <module>config/bdi-config-grpc</module>
     <module>starters/bdi-rest-jackson</module>
     <module>starters/bdi-jpa-postgresql</module>
     <module>starters/bdi-jpa-oracle</module>
@@ -54,6 +57,9 @@
     <module>starters/bdi-test-ldap</module>
     <module>starters/bdi-security-oidc</module>
     <module>starters/bdi-test-oidc</module>
+    <module>starters/bdi-rest-client</module>
+    <module>starters/bdi-rest-client-oidc</module>
+    <module>starters/bdi-grpc</module>
     <module>starters/bdi-test</module>
   </modules>
 </project>

@@ -1,0 +1,7 @@
+# Standardized defaults of bdi-config-oidc-client (ordinal 100): the service identity of the application.
+quarkus:
+  oidc-client:
+    grant:
+      type: client               # client credentials: the application acts as itself (EAP: the "run-as" of a batch EJB)
+    discovery-enabled: true
+    early-tokens-acquisition: false   # the first outbound call fetches the token; a realm that is late does not block the start

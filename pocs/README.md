@@ -11,7 +11,7 @@ measured numbers. Every POC builds from the root parent POM, so all of them shar
 | C | Legacy integration: JAX-WS (Quarkus CXF), Oracle and Db2 through `bdi-jpa-oracle` / `bdi-jpa-db2`, named datasources (4.1 C) | `c-legacy-integration` | planned |
 | D | Spring WAR: `quarkus-spring-*` compatibility vs idiomatic rewrite (4.1 D) | `d-spring-war` | planned |
 | E | Web UI: JSF/JSP decision cookbook (4.1 E) | `e-web-ui` | planned, only if the estate has it |
-| Remote EJB | Replacement matrix: REST client, gRPC, façade, tx and identity propagation (4.2) | `remote-ejb-replacement` | planned, last |
+| Remote EJB | Replacement matrix: REST client with the user's token or the application's own identity, gRPC on the unified port with the token propagated, the JAX-RS façade for coexistence, an idempotency key where the transaction used to be (4.2) | [`remote-ejb`](remote-ejb/) (`api`, `provider`, `caller`) | done; LRA, token exchange, mTLS in cookbook 7 |
 | Messaging | Reactive Messaging vs JMS over AMQP 1.0 on AMQ Broker; outbox, idempotent consumer, redelivery and DLQ (4.3) | [`messaging-amqp`](messaging-amqp/) | done; IBM MQ variation planned |
 | Kafka | keyed records, ordering per partition, throttled commits, dead-letter topic, idempotent consumer (4.4) | [`messaging-kafka`](messaging-kafka/) | done; Streams and schema registry called out |
 | Data | Hibernate ORM and Panache: the EAP DAO carried over next to the Panache repository, sequences and batching, optimistic locking, second-level cache, Envers history | [`data-hibernate-panache`](data-hibernate-panache/) | done |

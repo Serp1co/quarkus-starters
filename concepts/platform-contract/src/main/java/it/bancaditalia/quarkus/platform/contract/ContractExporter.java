@@ -31,6 +31,9 @@ public final class ContractExporter {
     private static final String OUTGOING = "org.eclipse.microprofile.reactive.messaging.Outgoing";
     private static final String CHANNEL = "org.eclipse.microprofile.reactive.messaging.Channel";
     private static final String ROLES_ALLOWED = "jakarta.annotation.security.RolesAllowed";
+    private static final String REST_CLIENT = "org.eclipse.microprofile.rest.client.inject.RestClient";
+    private static final String REGISTER_REST_CLIENT = "org.eclipse.microprofile.rest.client.inject.RegisterRestClient";
+    private static final String GRPC_CLIENT = "io.quarkus.grpc.GrpcClient";
 
     private ContractExporter() {
     }
@@ -51,6 +54,8 @@ public final class ContractExporter {
         Set<String> incoming = new TreeSet<>();
         Set<String> outgoing = new TreeSet<>();
         Set<String> roles = new TreeSet<>();
+        Set<String> restClients = new TreeSet<>();
+        Set<String> grpcClients = new TreeSet<>();
         for (String name : classNames(classes)) {
             Class<?> type;
             try {
@@ -60,6 +65,7 @@ public final class ContractExporter {
                 }
                 channels(type, incoming, outgoing);
                 roles(type, roles);
+                clients(type, restClients, grpcClients);
             } catch (ClassNotFoundException | LinkageError e) {
                 // an incomplete contract is worse than a failed build: the platform would render too little
                 throw new IllegalStateException("cannot load " + name + " from " + classes + " to derive the contract: " + e, e);
@@ -85,6 +91,12 @@ public final class ContractExporter {
             }
             for (String channel : outgoing) {
                 descriptor.outgoing().forEach(k -> builder.addIfAbsent(k.forChannel("outgoing", channel, application)));
+            }
+            for (String client : restClients) {
+                descriptor.restClients().forEach(k -> builder.addIfAbsent(k.forName(PlatformDescriptor.REST_CLIENT_PREFIX, client, application)));
+            }
+            for (String client : grpcClients) {
+                descriptor.grpcClients().forEach(k -> builder.addIfAbsent(k.forName(PlatformDescriptor.GRPC_CLIENT_PREFIX, client, application)));
             }
         }
         return builder.build();
@@ -125,6 +137,38 @@ public final class ContractExporter {
                 }
             }
         }
+    }
+
+    /**
+     * Every REST client the class injects ({@code @RestClient} field: the config key of its {@code @RegisterRestClient},
+     * or the interface name) and every gRPC client ({@code @GrpcClient("name")}, or the field name).
+     */
+    private static void clients(Class<?> type, Set<String> restClients, Set<String> grpcClients) {
+        for (Field field : type.getDeclaredFields()) {
+            for (Annotation annotation : field.getAnnotations()) {
+                String name = annotation.annotationType().getName();
+                if (REST_CLIENT.equals(name)) {
+                    restClients.add(restClientKey(field.getType()));
+                } else if (GRPC_CLIENT.equals(name)) {
+                    String value = value(annotation);
+                    grpcClients.add(value.isBlank() ? field.getName() : value);
+                }
+            }
+        }
+    }
+
+    static String restClientKey(Class<?> clientInterface) {
+        for (Annotation annotation : clientInterface.getAnnotations()) {
+            if (REGISTER_REST_CLIENT.equals(annotation.annotationType().getName())) {
+                try {
+                    String key = String.valueOf(annotation.annotationType().getMethod("configKey").invoke(annotation));
+                    return key.isBlank() ? clientInterface.getName() : key;
+                } catch (ReflectiveOperationException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        }
+        return clientInterface.getName();
     }
 
     /** Every role named by {@code @RolesAllowed} on the class or its methods. */

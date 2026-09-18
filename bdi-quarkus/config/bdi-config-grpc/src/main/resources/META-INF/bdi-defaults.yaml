@@ -1,0 +1,5 @@
+# Standardized defaults of bdi-config-grpc (ordinal 100).
+quarkus:
+  grpc:
+    server:
+      use-separate-server: false   # build-time: gRPC on the HTTP server, so bearer auth, path policies and the LB apply once

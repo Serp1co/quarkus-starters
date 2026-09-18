@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <!-- The application parent: contract export, lint, governance and packaging come from it, nothing is declared here -->
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>bdi-quarkus-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../../bdi-quarkus/parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>poc-remote-ejb-provider</artifactId>
+  <name>POC remote EJB: provider</name>
+  <description>
+    The ex-@Remote EJB (design note 4.2): the counterparty registry other applications called over remote+http. The same bean now behind a JAX-RS facade (the default, and the coexistence facade an EAP host would run over the old EJBs) and a gRPC service (the typed contract). Bearer tokens from RHBK on both, roles from the realm, one unified port.
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-rest-jackson</artifactId>
+    </dependency>    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-security-oidc</artifactId>
+    </dependency>    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-grpc</artifactId>
+    </dependency>    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-observability</artifactId>
+    </dependency>    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>poc-remote-ejb-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-test</artifactId>
+      <scope>test</scope>
+    </dependency>    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-test-oidc</artifactId>
+      <scope>test</scope>
+    </dependency>  </dependencies>
+</project>

@@ -46,6 +46,21 @@ class ContractExporterTest {
     }
 
     @Test
+    void clientTemplatesAreInstantiatedPerInjectedClient() {
+        PlatformDescriptor rest = PlatformDescriptor.parse("""
+                { "module": "bdi-config-rest-client", "keys": [],
+                  "rest-clients": [ { "suffix": "url", "type": "String", "required": true, "pattern": "^https?://.+", "doc": "URL of {client}" } ],
+                  "grpc-clients": [ { "suffix": "host", "type": "String", "required": true, "doc": "host of {client}" } ] }
+                """);
+        ConfigContract.Key url = rest.restClients().get(0).forName(PlatformDescriptor.REST_CLIENT_PREFIX, "counterparty", "app");
+        assertEquals("quarkus.rest-client.counterparty.url", url.name());
+        assertEquals("URL of counterparty", url.doc());
+        assertEquals(Optional.of("^https?://.+"), url.constraints().pattern());
+        ConfigContract.Key host = rest.grpcClients().get(0).forName(PlatformDescriptor.GRPC_CLIENT_PREFIX, "registry.v1", "app");
+        assertEquals("quarkus.grpc.clients.\"registry.v1\".host", host.name());
+    }
+
+    @Test
     void descriptorsCarryPhaseConstraintsAndReplacements() {
         PlatformDescriptor jpa = PlatformDescriptor.parse("""
                 { "module": "bdi-config-jpa", "keys": [
