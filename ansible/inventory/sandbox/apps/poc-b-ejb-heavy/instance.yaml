@@ -1,0 +1,6 @@
+kind: instance
+name: node-1
+http_port: 8080
+management_port: 9000
+transaction_node_name: uat-node-1
+transaction_object_store: /var/lib/bdi/poc-b-ejb-heavy/node-1/ObjectStore

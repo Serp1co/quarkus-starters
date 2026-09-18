@@ -34,6 +34,14 @@ the YAML support to every application. Two rules learnt on RHBQ 3.33:
   (`application.yaml` + `application-uat.yaml` in one directory) are supported, but a key present in both
   is resolved from the base file, so the convention avoids them.
 
+## Precedence (refines §2.2)
+
+Measured on RHBQ 3.33: system properties (400) beat the files named in `QUARKUS_CONFIG_LOCATIONS` (300,
+first listed wins), which beat environment variables (also 300, losing the tie), which beat `application.yaml`
+(250) and the config modules' defaults (100). So "environment variables for per-instance values" of §2.2 does
+not hold once a rendered file names the key: per-instance values (XA node name, object store, ports) are
+rendered into a per-instance file, and the unit lists `secrets.yaml,instance.yaml,application-<env>.yaml`.
+
 ## Starters and config modules (refines §2.3)
 
 Developers depend on capabilities (`bdi-rest-jackson`, `bdi-jpa-oracle`, `bdi-observability`, `bdi-test`),

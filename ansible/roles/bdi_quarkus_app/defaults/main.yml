@@ -6,6 +6,7 @@ bdi_env: prod
 bdi_service_manager: systemd
 bdi_root: /opt/bdi
 bdi_etc: /etc/bdi
+bdi_var: /var/lib/bdi
 bdi_service_user: bdi-app
 bdi_service_group: bdi-app
 bdi_java: /usr/bin/java
@@ -14,5 +15,12 @@ bdi_http_port: 8080
 bdi_management_port: 9000
 bdi_apps_dir: "{{ inventory_dir }}/apps"
 bdi_verify_host: 127.0.0.1
+# Rendered under the application's fragments (a fragment overrides them): what every application needs and
+# nobody should have to write. The XA transaction log must survive a release switch.
+bdi_platform_config_defaults:
+  quarkus:
+    transaction-manager:
+      object-store:
+        directory: "{{ bdi_var }}/{{ bdi_app }}/ObjectStore"
 bdi_health_retries: 60
 bdi_health_delay: 2

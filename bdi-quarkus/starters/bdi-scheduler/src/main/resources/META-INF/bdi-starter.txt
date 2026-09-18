@@ -1,0 +1,2 @@
+starter: bdi-scheduler
+See bdi-quarkus/README.md. This jar only carries a dependency set; the configuration lives in the bdi-config-* module it depends on.

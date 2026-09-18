@@ -20,6 +20,7 @@
     <module>concepts/platform-contract</module>
     <module>bdi-quarkus</module>
     <module>pocs/a-jakarta-classic</module>
+    <module>pocs/b-ejb-heavy</module>
   </modules>
 
   <properties>
@@ -108,6 +109,26 @@
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-observability</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-scheduler</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-flyway</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-scheduler</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-flyway-postgresql</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

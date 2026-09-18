@@ -1,0 +1,8 @@
+kind: datasource
+name: default
+driver: postgresql
+url: "jdbc:postgresql://127.0.0.1:5432/poc"
+user: "${fromvault.app.USERNAME}"
+password: "${fromvault.app.PASSWORD}"
+pool_min: 2
+pool_max: 10

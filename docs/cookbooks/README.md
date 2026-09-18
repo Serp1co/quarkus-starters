@@ -10,7 +10,7 @@ has been run on at least stage 1 of the target ladder, so that every claim in it
 | 3 | Externalizing configuration: locations, profiles, `@ConfigMapping`, the contract schema, YAML rules | POC A, `concepts/platform-contract`, `bdi-quarkus` | draft in the [platform walkthrough](../../pocs/a-jakarta-classic/platform/README.md) and [bdi-quarkus/README.md](../../bdi-quarkus/README.md) |
 | 4 | Datasources and secrets (Agroal, the `bdi-jpa-*` variations for PostgreSQL/Oracle/Db2, CyberArk and HashiCorp) | POC C | planned |
 | 5 | JAX-RS / CDI / JPA from EAP | POC A | [05-jaxrs-cdi-jpa-from-eap.md](05-jaxrs-cdi-jpa-from-eap.md) |
-| 6 | EJB / MDB / timers / XA recovery | POC B | planned |
+| 6 | EJB / MDB / timers / XA recovery | POC B | draft in the [POC B README](../../pocs/b-ejb-heavy/README.md) (MDB with the messaging POC) |
 | 7 | Remote EJB replacement (REST, gRPC, façade pattern, tx and identity propagation) | Remote EJB POC | planned |
 | 8 | Queues/topics: Reactive Messaging vs JMS over AMQP 1.0; outbox and idempotency | Messaging POC | planned |
 | 9 | Kafka: messaging vs Streams vs client; schema registry | Kafka POC | planned |

@@ -45,8 +45,9 @@ public final class ConfigContract {
         }
     }
 
-    /** One contract key resolved against the live configuration. */
-    public record Echo(String key, boolean present, String value, String source, boolean required, boolean secret) {
+    /** One contract key resolved against the live configuration; ordinal is the precedence of the winning source. */
+    public record Echo(String key, boolean present, String value, String source, Integer ordinal, boolean required,
+            boolean secret) {
     }
 
     public static final String MASK = "******";
@@ -81,6 +82,7 @@ public final class ConfigContract {
             out.add(new Echo(key.name(), present,
                     !present ? null : key.secret() ? MASK : value.getValue(),
                     present ? value.getSourceName() : null,
+                    present ? value.getSourceOrdinal() : null,
                     key.required(), key.secret()));
         }
         return out;

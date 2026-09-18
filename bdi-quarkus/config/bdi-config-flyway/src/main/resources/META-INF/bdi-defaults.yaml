@@ -1,0 +1,22 @@
+# Standardized defaults of bdi-config-flyway. Ordinal 110: above bdi-config-jpa (100), because Flyway owning the
+# schema means Hibernate must never generate it, in any profile.
+x-bdi-ordinal: 110
+quarkus:
+  flyway:
+    migrate-at-start: true     # the rolling update (serial 1) runs the migrations of the new release before it serves
+    baseline-on-migrate: true  # a pre-existing DBA-owned schema is baselined, not refused
+  hibernate-orm:
+    schema-management:
+      strategy: validate       # entities must match the migrated schema; the build fails early in dev/test otherwise
+"%dev":
+  quarkus:
+    hibernate-orm:
+      schema-management:
+        strategy: validate
+"%test":
+  quarkus:
+    flyway:
+      clean-at-start: true     # every test JVM starts from an empty schema
+    hibernate-orm:
+      schema-management:
+        strategy: validate

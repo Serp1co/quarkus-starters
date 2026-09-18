@@ -1,0 +1,13 @@
+# =============================================================================
+# POC B - developer-owned configuration (design notes 2.1 and 2.2).
+# Only "%dev" / "%test" inner-loop values; everything else comes from the
+# bdi-config-* modules of the starters or from the platform-rendered file.
+# =============================================================================
+"%dev":
+  settlement:
+    max-instruction-amount: "100000.00"
+"%test":
+  settlement:
+    interval: 2s
+    batch-size: 1
+    max-instruction-amount: "1000.00"

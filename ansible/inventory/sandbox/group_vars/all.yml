@@ -1,6 +1,7 @@
 # Platform-wide conventions (the "fixed paths" of design note 2.2).
 bdi_root: /opt/bdi                 # {{ bdi_root }}/<app>/releases/<version>, {{ bdi_root }}/<app>/current
 bdi_etc: /etc/bdi                  # {{ bdi_etc }}/<app>/application-<env>.yaml and secrets.yaml
+bdi_var: /var/lib/bdi              # {{ bdi_var }}/<app>: node-local state that survives releases (XA object store)
 bdi_service_user: bdi-app
 bdi_service_group: bdi-app
 bdi_java: /usr/bin/java

@@ -7,6 +7,7 @@ quarkus:
       acquisition-timeout: 5S
   transaction-manager:
     default-transaction-timeout: 120S
+    enable-recovery: true   # XA recovery on: the object store and node name below are platform keys, per instance
   hibernate-orm:
     log:
       sql: false

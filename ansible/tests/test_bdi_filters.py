@@ -45,7 +45,8 @@ def test_named_datasource_and_properties_and_categories():
 def test_platform_outputs_and_planned_kinds():
     out = bdi.bdi_render([
         {"kind": "java_opts", "heap": {"max_ram_percentage": 60}, "gc": "g1", "extra": ["-Dx=1"]},
-        {"kind": "instance", "name": "be1", "http_port": 8180, "management_port": 9100, "transaction_node_name": "be1"},
+        {"kind": "instance", "name": "be1", "http_port": 8180, "management_port": 9100, "transaction_node_name": "be1",
+         "transaction_object_store": "/var/lib/bdi/x/be1/ObjectStore"},
         {"kind": "release", "version": "1.2.3", "artifact_url": "https://nexus/x.zip"},
         {"kind": "vault", "provider": "hashicorp", "scopes": {"app": "secret/data/uat/x/app"}},
         {"kind": "cluster", "_file": "cluster.yaml"},
@@ -56,7 +57,7 @@ def test_platform_outputs_and_planned_kinds():
     assert out["platform"]["release"] == {"version": "1.2.3", "artifact_url": "https://nexus/x.zip"}
     assert out["platform"]["vault"]["scopes"]["app"] == "secret/data/uat/x/app"
     assert out["config"]["quarkus"]["http"]["port"] == 8180
-    assert out["config"]["quarkus"]["transaction-manager"]["node-name"] == "be1"
+    assert out["config"]["quarkus"]["transaction-manager"] == {"node-name": "be1", "object-store": {"directory": "/var/lib/bdi/x/be1/ObjectStore"}}
     assert len([w for w in out["warnings"] if "cluster.yaml" in w or "rbac.yaml" in w]) == 2
 
 

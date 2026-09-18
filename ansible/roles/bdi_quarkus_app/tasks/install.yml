@@ -8,6 +8,14 @@
     group: "{{ bdi_service_group if bdi_service_manager == 'systemd' else omit }}"
     mode: "0750"
 
+- name: State directory {{ bdi_var }}/{{ bdi_app }} (XA object store, anything node-local that must survive a release)
+  ansible.builtin.file:
+    path: "{{ bdi_var }}/{{ bdi_app }}"
+    state: directory
+    owner: "{{ bdi_service_user if bdi_service_manager == 'systemd' else omit }}"
+    group: "{{ bdi_service_group if bdi_service_manager == 'systemd' else omit }}"
+    mode: "0750"
+
 - name: Rendered configuration application-{{ bdi_env }}.yaml
   ansible.builtin.copy:
     content: |

@@ -12,6 +12,8 @@ bdi-quarkus/
   config/bdi-config-rest       defaults + contract keys of the REST stack
   config/bdi-config-jpa        defaults + contract keys of JPA/JTA/Agroal, shared by every bdi-jpa-* variation
   config/bdi-config-observability   defaults for logging/management, the /q/platform conformance endpoint, contract assembly
+  config/bdi-config-scheduler  Quartz clustered on the application database, contract keys of the timers
+  config/bdi-config-flyway     migrate at start, Hibernate validate (ordinal 110 over bdi-config-jpa)
   starters/bdi-*               empty jars whose dependency set is the point
 ```
 
@@ -24,6 +26,8 @@ bdi-quarkus/
 | `bdi-jpa-oracle` | same, with `quarkus-jdbc-oracle` | `bdi-config-jpa` | supported |
 | `bdi-jpa-db2` | same, with `quarkus-jdbc-db2` | `bdi-config-jpa` | supported |
 | `bdi-observability` | `quarkus-smallrye-health`, `quarkus-logging-json`, `platform-contract` | `bdi-config-observability` | supported |
+| `bdi-scheduler` | `quarkus-quartz` (clustered JDBC store on the application database) | `bdi-config-scheduler` | supported |
+| `bdi-flyway-postgresql` | `quarkus-flyway`, `quarkus-flyway-postgresql` | `bdi-config-flyway` (ordinal 110: Hibernate validates, never generates) | supported |
 | `bdi-test` (test scope) | `quarkus-junit`, `rest-assured` | | supported |
 
 An application declares capabilities, and picks the variation its estate needs:
@@ -44,7 +48,8 @@ confirmed against the RHBQ supported-configurations list, design note §9):
 
 | Capability | Variations | Starters (planned) |
 |---|---|---|
-| Relational data | PostgreSQL, Oracle, Db2 | `bdi-jpa-postgresql`, `bdi-jpa-oracle`, `bdi-jpa-db2` (done) |
+| Relational data | PostgreSQL, Oracle, Db2 | `bdi-jpa-postgresql`, `bdi-jpa-oracle`, `bdi-jpa-db2` (done); `bdi-flyway-postgresql` (done), `bdi-flyway-oracle`, Db2 to check |
+| Timers | clustered Quartz on the database | `bdi-scheduler` (done) |
 | Queues and topics | AMQ Broker over AMQP 1.0 (Reactive Messaging or JMS), IBM MQ (JMS, resource adapter: Quarkiverse, unsupported), Kafka / AMQ Streams | `bdi-messaging-amqp`, `bdi-jms-amqp`, `bdi-jms-ibmmq`, `bdi-messaging-kafka`, `bdi-kafka-streams` |
 | Inbound identity | Red Hat build of Keycloak (OIDC), Active Directory / LDAP (Elytron) | `bdi-security-oidc`, `bdi-security-ldap` |
 | Secrets | CyberArk, HashiCorp Vault, rendered file (AAP) | `bdi-secrets-cyberark`, `bdi-secrets-vault`, the file path of `bdi-config-core` |
@@ -62,10 +67,10 @@ confirmed against the RHBQ supported-configurations list, design note §9):
    | Source | Ordinal |
    |---|---|
    | system properties | 400 |
+   | files named in `QUARKUS_CONFIG_LOCATIONS` (rendered by the platform; first listed wins) | 300, wins the tie |
    | environment variables (`QUARKUS_DATASOURCE_JDBC_URL`) | 300 |
-   | files named in `QUARKUS_CONFIG_LOCATIONS` (rendered by the platform) | 260 |
    | `application.yaml` in the artifact (developer, `%dev`/`%test` only) | 250 |
-   | **`BdiDefaults[bdi-config-*]`** | **100** |
+   | **`BdiDefaults[bdi-config-*]`** | **100** (a module may declare `x-bdi-ordinal`, e.g. 110 for `bdi-config-flyway`) |
    | Quarkus defaults | lowest |
 
    Profile sections (`"%dev":`, `"%test":`) in a defaults file work like anywhere else, which is how the

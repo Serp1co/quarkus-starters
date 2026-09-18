@@ -202,6 +202,8 @@ def _translate_instance(fragment, warnings, platform):
         keys["quarkus.management.host"] = fragment["bind_address"]
     if "transaction_node_name" in fragment:
         keys["quarkus.transaction-manager.node-name"] = fragment["transaction_node_name"]
+    if "transaction_object_store" in fragment:
+        keys["quarkus.transaction-manager.object-store.directory"] = fragment["transaction_object_store"]
     if "port_offset" in fragment:
         warnings.append(f"{_file(fragment)}: port_offset is an EAP habit; give http_port and management_port explicitly")
     platform["instance"] = fragment.get("name", "default")

@@ -18,7 +18,8 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
 
 /**
  * Discovers every {@code META-INF/bdi-defaults.yaml} on the classpath (one per bdi-config-* module) and
- * exposes each as a YAML config source named {@code BdiDefaults[module]} with ordinal {@link #ORDINAL}.
+ * exposes each as a YAML config source named {@code BdiDefaults[module]} with ordinal {@link #ORDINAL_DEFAULT}
+ * (or the {@code x-bdi-ordinal} the file declares).
  * <p>
  * The ordinal is the point: 100 sits above Quarkus' own defaults and below {@code application.yaml} (250),
  * the files the platform renders through {@code QUARKUS_CONFIG_LOCATIONS} (260), environment variables
@@ -31,8 +32,10 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
 public class BdiDefaultsConfigSourceFactory implements ConfigSourceFactory {
 
     public static final String RESOURCE = "META-INF/bdi-defaults.yaml";
-    public static final int ORDINAL = 100;
+    public static final int ORDINAL_DEFAULT = 100;
 
+    /** A module whose defaults must win over another module's declares {@code x-bdi-ordinal: 110} at the top level. */
+    private static final Pattern ORDINAL = Pattern.compile("(?m)^x-bdi-ordinal:\\s*(\\d+)\\s*$");
     private static final Pattern JAR_NAME = Pattern.compile("([A-Za-z][A-Za-z0-9-]*?)-[0-9][^/]*\\.jar!");
     private static final Pattern MODULE_DIR = Pattern.compile("/([^/]+)/target/classes/");
 
@@ -49,7 +52,7 @@ public class BdiDefaultsConfigSourceFactory implements ConfigSourceFactory {
                 URL url = resources.nextElement();
                 try (InputStream in = url.openStream()) {
                     String yaml = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-                    sources.add(new YamlConfigSource("BdiDefaults[" + moduleName(url) + "]", yaml, ORDINAL));
+                    sources.add(new YamlConfigSource("BdiDefaults[" + moduleName(url) + "]", yaml, ordinal(yaml)));
                 }
             }
         } catch (IOException e) {
@@ -57,6 +60,11 @@ public class BdiDefaultsConfigSourceFactory implements ConfigSourceFactory {
         }
         sources.sort(Comparator.comparing(ConfigSource::getName));
         return sources;
+    }
+
+    static int ordinal(String yaml) {
+        Matcher m = ORDINAL.matcher(yaml);
+        return m.find() ? Integer.parseInt(m.group(1)) : ORDINAL_DEFAULT;
     }
 
     /** {@code .../bdi-config-jpa-1.0.0.jar!/META-INF/...} or {@code .../bdi-config-jpa/target/classes/...} to {@code bdi-config-jpa}. */

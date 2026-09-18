@@ -12,6 +12,10 @@
   ansible.builtin.set_fact:
     bdi_rendered: "{{ bdi_fragments | default([]) | bdi_render }}"
 
+- name: Platform defaults under the fragments (the XA object store outside the release directory)
+  ansible.builtin.set_fact:
+    bdi_rendered: "{{ bdi_rendered | combine({'config': bdi_platform_config_defaults | combine(bdi_rendered.config, recursive=True)}) }}"
+
 - name: Translation notes
   ansible.builtin.debug:
     msg: "{{ bdi_rendered.warnings }}"

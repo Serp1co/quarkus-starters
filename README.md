@@ -80,9 +80,9 @@ export QUARKUS_DATASOURCE_USERNAME=poc QUARKUS_DATASOURCE_PASSWORD=poc
   image for containers; the same artifact goes to every stage. A `"%prod":` section (or any environment
   name) is banned from `application.yaml`; `ArtifactConfigLint` fails the build on it. Only `%dev`/`%test`
   inner-loop values live in the artifact.
-- **Config entry points (§2.2).** One fully rendered `application-<env>.yaml` plus the secrets file at a
-  fixed path, both named in `QUARKUS_CONFIG_LOCATIONS`; the active profile through `QUARKUS_PROFILE`;
-  environment variables only for per-instance values. What the platform must render is declared in
+- **Config entry points (§2.2).** Rendered files at a fixed path, named in `QUARKUS_CONFIG_LOCATIONS` as
+  `secrets.yaml,instance.yaml,application-<env>.yaml` (first listed wins, and they beat environment variables);
+  the active profile through `QUARKUS_PROFILE`; per-instance values rendered, not passed as env. What the platform must render is declared in
   `@ConfigMapping` interfaces and exported as `META-INF/config-contract.json` by each application.
 - **No unit files, no environment in images (§3).** Application repositories never contain a systemd unit;
   the Dockerfile carries no configuration. Both belong to the AAP roles.
@@ -96,9 +96,10 @@ export QUARKUS_DATASOURCE_USERNAME=poc QUARKUS_DATASOURCE_PASSWORD=poc
 | Item | State |
 |---|---|
 | Container project (parent POM, wrapper, CI, layout) | done |
-| `bdi-quarkus`: BOM, 6 starters, 4 config modules | done; messaging, security, secrets, SOAP and Spring variations planned with their POCs |
+| `bdi-quarkus`: BOM, 8 starters, 6 config modules | done; messaging, security, secrets, SOAP and Spring variations planned with their POCs |
 | Concept `platform-contract` | done, unit-tested |
 | POC A, Jakarta classic | on the starters, YAML only, zero non-profile config lines; tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
+| POC B, EJB-heavy | done: timers on clustered Quartz, REQUIRES_NEW isolation, async, XA keys, Flyway; two-instance demo |
 | Ansible deploy role and playbooks | proposal that runs in the sandbox (render, validate, install, rollback, verify); systemd, Quadlet and OpenShift variants to exercise on real hosts |
 | Cookbook 5 (JAX-RS / CDI / JPA from EAP) | draft |
 | Other POCs and cookbooks | planned, see the indexes |

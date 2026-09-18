@@ -16,8 +16,14 @@ class BdiDefaultsConfigSourceFactoryTest {
                 .build();
         assertEquals("false", config.getConfigValue("quarkus.banner.enabled").getValue());
         assertEquals("BdiDefaults[bdi-config-core]", config.getConfigValue("quarkus.banner.enabled").getSourceName());
-        assertEquals(BdiDefaultsConfigSourceFactory.ORDINAL,
+        assertEquals(BdiDefaultsConfigSourceFactory.ORDINAL_DEFAULT,
                 config.getConfigValue("quarkus.banner.enabled").getSourceOrdinal());
+    }
+
+    @Test
+    void readsAnOrdinalOverride() {
+        assertEquals(110, BdiDefaultsConfigSourceFactory.ordinal("x-bdi-ordinal: 110\nquarkus:\n  a: b\n"));
+        assertEquals(100, BdiDefaultsConfigSourceFactory.ordinal("quarkus:\n  a: b\n"));
     }
 
     @Test

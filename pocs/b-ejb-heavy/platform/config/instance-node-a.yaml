@@ -1,0 +1,6 @@
+# Rendered per host from the instance fragment (ansible/fragments/instance.yaml): what must differ per instance.
+quarkus:
+  transaction-manager:
+    node-name: node-a
+    object-store:
+      directory: /var/lib/bdi/poc-b-ejb-heavy/node-a/ObjectStore

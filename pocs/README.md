@@ -7,7 +7,7 @@ measured numbers. Every POC builds from the root parent POM, so all of them shar
 | POC | Class (design note) | Directory | Status |
 |---|---|---|---|
 | A | Jakarta classic: JAX-RS, CDI, JPA, JTA, Bean Validation (4.1 A) | [`a-jakarta-classic`](a-jakarta-classic/) | on the `bdi-*` starters, YAML only: code, tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
-| B | EJB-heavy: `@Stateless`/`@Singleton`/`@Schedule`, MDB, XA recovery (4.1 B) | `b-ejb-heavy` | planned |
+| B | EJB-heavy: `@Stateless`/`@Singleton`/`@Schedule`, `@TransactionAttribute`, `@Asynchronous`, XA recovery (4.1 B); MDB deferred to the messaging POC | [`b-ejb-heavy`](b-ejb-heavy/) | done: clustered Quartz timer on the database, Flyway, batch isolation, two-instance demo |
 | C | Legacy integration: JAX-WS (Quarkus CXF), Oracle and Db2 through `bdi-jpa-oracle` / `bdi-jpa-db2`, named datasources (4.1 C) | `c-legacy-integration` | planned |
 | D | Spring WAR: `quarkus-spring-*` compatibility vs idiomatic rewrite (4.1 D) | `d-spring-war` | planned |
 | E | Web UI: JSF/JSP decision cookbook (4.1 E) | `e-web-ui` | planned, only if the estate has it |

@@ -112,6 +112,7 @@ class ConfigContractTest {
         assertTrue(amount.present());
         assertEquals("10", amount.value());
         assertTrue(amount.source().contains("inventory"), amount.source());
+        assertEquals(500, amount.ordinal());
         assertEquals(ConfigContract.MASK, find(echo, "sample.api-key").value());
         assertFalse(find(echo, "db.password").present());
         assertTrue(echo.stream().noneMatch(e -> e.key().contains("*")));

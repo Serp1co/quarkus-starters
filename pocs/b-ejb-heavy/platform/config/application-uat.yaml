@@ -1,0 +1,13 @@
+# Rendered by the platform for env=uat, one file per environment. Keys: META-INF/config-contract.json.
+# Per-instance values (XA node name, object store, ports) live in instance.yaml, rendered per host from the
+# instance fragment and listed BEFORE this file in QUARKUS_CONFIG_LOCATIONS: the first location wins.
+quarkus:
+  datasource:
+    jdbc:
+      url: jdbc:postgresql://127.0.0.1:5432/poc
+      max-size: 20
+    username: poc
+settlement:
+  interval: 30s
+  batch-size: 100
+  max-instruction-amount: "250000.00"

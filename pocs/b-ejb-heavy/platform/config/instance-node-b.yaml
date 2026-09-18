@@ -1,0 +1,10 @@
+# Second instance of the cluster demo (a second VM behind the load balancer, or a second unit on the same host).
+quarkus:
+  http:
+    port: 8081
+  management:
+    port: 9001
+  transaction-manager:
+    node-name: node-b
+    object-store:
+      directory: /var/lib/bdi/poc-b-ejb-heavy/node-b/ObjectStore

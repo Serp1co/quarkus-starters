@@ -48,8 +48,11 @@ ansible/
    unpack, read `META-INF/config-contract.json` out of the application jar.
 3. **validate**. Required keys present (in the rendered file or the secrets file), secret keys not in the
    rendered file, undeclared keys reported. Fails before any file or service changes, with the list.
-4. **install**. `application-<env>.yaml` (0640) and `secrets.yaml` (0600) under `/etc/bdi/<app>/`, the
-   previous release remembered in `/opt/bdi/<app>/previous`, `current` pointed at the new release.
+4. **install**. `application-<env>.yaml` (0640) and `secrets.yaml` (0600) under `/etc/bdi/<app>/`, the state
+   directory `/var/lib/bdi/<app>` (XA object store, rendered under the fragments as a platform default), the
+   previous release remembered in `/opt/bdi/<app>/previous`, `current` pointed at the new release. The rendered
+   file is per host, so per-instance values (node name, ports) are rendered too: files named in
+   `QUARKUS_CONFIG_LOCATIONS` beat environment variables, and the first listed file wins.
 5. **service** (`bdi_service_manager: systemd`). The unit from the template, `daemon-reload`, restart,
    then `/q/health/ready` polled until 200. With `serial: 1` this is the rolling update behind the load
    balancer; `bdi_health_retries` is the gate's patience.

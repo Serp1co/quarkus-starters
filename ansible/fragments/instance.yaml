@@ -6,4 +6,5 @@ http_port: 8080                     # -> quarkus.http.port (platform key)
 management_port: 9000               # -> quarkus.management.port (platform key)
 bind_address: 0.0.0.0               # -> quarkus.http.host; management interface likewise
 # transaction_node_name: be1        # -> quarkus.transaction-manager.node-name (XA recovery, unique per instance)
+# transaction_object_store: /var/lib/bdi/<app>/be1/ObjectStore   # -> quarkus.transaction-manager.object-store.directory: persistent, node-local, outside the release (the role creates {{ bdi_var }}/<app>)
 # port_offset: 100                  # EAP habit: express the resulting ports directly instead

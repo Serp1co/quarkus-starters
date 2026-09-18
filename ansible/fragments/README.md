@@ -15,7 +15,7 @@ translates it today (`translated`), only recognises it (`planned`), or ignores i
 | `syslog.yml` | `syslog` | `quarkus.log.syslog.*`, or rsyslog forwarding of journald on the host | application or platform | translated |
 | `keystore.yml` | `keystore` | TLS registry `quarkus.tls[.<name>].*`, `reload-period` for AAP-rotated certificates; passwords from the vault | application + platform | translated |
 | `java_opts.yml` | `java_opts` | `JAVA_OPTS` of the unit (`MaxRAMPercentage`, GC, extras) | platform | translated (unit) |
-| `jboss-osc-raccolta-be1.yml` (one server instance) | `instance` | one unit per instance: `quarkus.http.port`, `quarkus.management.port`, bind host, `quarkus.transaction-manager.node-name` | platform (host_vars) | translated |
+| `jboss-osc-raccolta-be1.yml` (one server instance) | `instance` | one unit per instance: `quarkus.http.port`, `quarkus.management.port`, bind host, `quarkus.transaction-manager.node-name`, `object-store.directory` (rendered, since files beat environment variables) | platform (host_vars) | translated |
 | `release.yml` | `release` | version and artifact URL, defaults for the deploy survey | inventory (GitOps) | translated |
 | `vault.yml` | `vault` | the `${fromvault.<scope>.*}` scopes and the vault paths they resolve from; values only ever in `secrets.yaml` | platform + application | translated (scopes) |
 | `cluster.yml` | `cluster` | no runtime cluster: stateless behind the LB; HA timers to clustered Quartz; caches to Data Grid; per-instance node name | platform + starters (planned) | planned |

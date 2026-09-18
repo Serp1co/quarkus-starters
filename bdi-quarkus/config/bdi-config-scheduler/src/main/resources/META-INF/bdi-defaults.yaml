@@ -1,0 +1,11 @@
+# Standardized defaults of bdi-config-scheduler (ordinal 100: below application.yaml and the platform).
+quarkus:
+  quartz:
+    clustered: true            # one execution per trigger across the instances (EAP: HA singleton timer)
+    store-type: jdbc-cmt       # Quartz tables on the application datasource, in the JTA transaction (V1__quartz.sql, see bdi-flyway-*)
+    instance-id: AUTO          # hostname + timestamp; the cluster row of each instance
+    thread-count: 5
+"%test":
+  quarkus:
+    scheduler:
+      start-mode: forced       # the scheduler runs in tests even when the test declares no job of its own

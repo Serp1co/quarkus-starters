@@ -83,14 +83,16 @@ That is the behaviour the AAP pre-deploy validation front-runs by checking the r
 
 ## Rules of the config locations, as verified on RHBQ 3.33
 
-- `QUARKUS_CONFIG_LOCATIONS` takes a comma-separated list of files or directories. The convention is two
-  explicit files: the fully rendered `application-<env>.yaml` and the secrets file. Any file name works.
+- `QUARKUS_CONFIG_LOCATIONS` takes a comma-separated list of files or directories; the first listed wins. The
+  convention is `secrets.yaml,instance.yaml,application-<env>.yaml`: the secrets, what differs per instance,
+  the environment. Any file name works.
 - A directory also works (it contributes its `application.yaml` and, with a profile active, its
   `application-<profile>.yaml`), but a key present in both files is resolved from `application.yaml`, not
   from the profile file. Hence one rendered file per environment; a `"%uat":` section inside it is fine.
-- Values in these files override the ones inside the artifact and the `BdiDefaults` of the config modules;
-  environment variables override everything, which keeps `QUARKUS_DATASOURCE_*`-style variables available
-  for per-instance values (§2.2).
+- Values in these files override the ones inside the artifact, the `BdiDefaults` of the config modules and,
+  at the same ordinal 300, the environment variables (the file wins the tie, as measured). Per-instance values
+  are therefore rendered into a per-instance file listed first, not passed as environment variables; system
+  properties (400) still override everything.
 - A listed location that does not exist is ignored: a missing rendered file surfaces as a missing key, which
   is why the conformance check exists.
 - `QUARKUS_PROFILE` is a label: the artifact carries no `"%prod":` or `"%uat":` section (lint-enforced),
