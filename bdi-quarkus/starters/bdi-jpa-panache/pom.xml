@@ -11,22 +11,18 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>bdi-test</artifactId>
-  <name>Starter: bdi-test</name>
-  <description>Quarkus JUnit 5 support, Mockito (@InjectMock) and RestAssured. Add with test scope.</description>
+  <artifactId>bdi-jpa-panache</artifactId>
+  <name>Starter: bdi-jpa-panache</name>
+  <description>Panache on top of Hibernate ORM (repository pattern and active record, paging, sorting, projections). A capability, not a database variation: add it next to bdi-jpa-postgresql, bdi-jpa-oracle or bdi-jpa-db2, which bring the driver, JTA and bdi-config-jpa.</description>
 
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit</artifactId>
+      <artifactId>quarkus-hibernate-orm-panache</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5-mockito</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.rest-assured</groupId>
-      <artifactId>rest-assured</artifactId>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-config-jpa</artifactId>
     </dependency>
   </dependencies>
 </project>

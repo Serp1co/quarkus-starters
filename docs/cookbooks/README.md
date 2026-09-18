@@ -21,3 +21,4 @@ has been run on at least stage 1 of the target ladder, so that every claim in it
 | 14 | AAP deploy and rollback on VMs (systemd) | POC A stage 1, [`ansible/`](../../ansible/README.md) | draft: the role and playbooks exist and run in the sandbox; host provisioning and a real systemd run pending |
 | 15 | Container on VM: Podman + Quadlet | POC A stage 2 | planned |
 | 16 | Same app on OpenShift | POC A stage 3 | planned |
+| 17 | Data access: the EAP DAO vs Panache, sequences and batching, optimistic locking, second-level cache, Envers | Data POC | draft in the [data POC README](../../pocs/data-hibernate-panache/README.md) |

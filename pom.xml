@@ -23,6 +23,7 @@
     <module>pocs/b-ejb-heavy</module>
     <module>pocs/messaging-amqp</module>
     <module>pocs/messaging-kafka</module>
+    <module>pocs/data-hibernate-panache</module>
   </modules>
 
   <properties>
@@ -171,6 +172,21 @@
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-scheduler-local</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-audit</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-jpa-panache</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-jpa-audit</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

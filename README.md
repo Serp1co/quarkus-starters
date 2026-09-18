@@ -99,12 +99,13 @@ export KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092                                  #
 | Item | State |
 |---|---|
 | Container project (parent POM, wrapper, CI, layout) | done |
-| `bdi-quarkus`: BOM, 12 starters, 9 config modules | done; IBM MQ, security, secrets, SOAP and Spring variations planned with their POCs |
+| `bdi-quarkus`: BOM, 14 starters, 10 config modules | done; IBM MQ, security, secrets, SOAP and Spring variations planned with their POCs |
 | Concept `platform-contract` | done, unit-tested |
 | POC A, Jakarta classic | on the starters, YAML only, zero non-profile config lines; tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
 | POC B, EJB-heavy | done: timers on clustered Quartz, REQUIRES_NEW isolation, async, XA keys, Flyway; two-instance demo |
 | POC messaging (AMQP) | done: outbox, idempotent consumer, redelivery to DLQ, JMS variation on the same broker |
 | POC messaging (Kafka) | done: keyed records, ordering per partition, dead-letter topic, idempotent consumer |
+| POC data (Hibernate ORM and Panache) | done: the EAP DAO and a Panache repository on one entity model, one test for both; sequences, optimistic locking, second-level cache, Envers |
 | Ansible deploy role and playbooks | proposal that runs in the sandbox (render, validate, install, rollback, verify); systemd, Quadlet and OpenShift variants to exercise on real hosts |
 | Cookbook 5 (JAX-RS / CDI / JPA from EAP) | draft |
 | Other POCs and cookbooks | planned, see the indexes |

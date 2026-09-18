@@ -1,0 +1,9 @@
+# Standardized defaults of bdi-config-audit (ordinal 100). All build-time keys: the naming convention of the audit
+# tables is the same in every application of the estate, so the DBA scripts and the reporting queries are too.
+quarkus:
+  hibernate-envers:
+    audit-table-suffix: _aud          # intermediary -> intermediary_aud
+    revision-field-name: rev
+    revision-type-field-name: revtype
+    store-data-at-delete: true        # a DEL revision keeps the last state of the row, not just its id
+    do-not-audit-optimistic-locking-field: true   # @Version is not history

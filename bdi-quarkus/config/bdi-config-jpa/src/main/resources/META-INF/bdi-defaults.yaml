@@ -13,6 +13,11 @@ quarkus:
       sql: false
     schema-management:
       strategy: none        # environments: the schema is owned by the DBA (or Flyway, cookbook 4)
+    jdbc:
+      statement-batch-size: 50   # inserts/updates batched (sequence ids only: IDENTITY switches batching off)
+      statement-fetch-size: 100  # rows per round trip when streaming a result set
+    fetch:
+      batch-size: 16             # lazy collections and proxies loaded 16 owners at a time (the N+1 safety net)
 "%dev":
   quarkus:
     hibernate-orm:
@@ -20,6 +25,7 @@ quarkus:
         strategy: drop-and-create
       log:
         sql: true
+        format-sql: true
 "%test":
   quarkus:
     hibernate-orm:

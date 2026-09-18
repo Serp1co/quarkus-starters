@@ -11,22 +11,18 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>bdi-test</artifactId>
-  <name>Starter: bdi-test</name>
-  <description>Quarkus JUnit 5 support, Mockito (@InjectMock) and RestAssured. Add with test scope.</description>
+  <artifactId>bdi-jpa-audit</artifactId>
+  <name>Starter: bdi-jpa-audit</name>
+  <description>Entity history with Hibernate Envers (@Audited: every revision of a row, who and when, kept in _aud tables), configured by bdi-config-audit. A capability on top of a bdi-jpa-* variation.</description>
 
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit</artifactId>
+      <artifactId>quarkus-hibernate-envers</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5-mockito</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.rest-assured</groupId>
-      <artifactId>rest-assured</artifactId>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-config-audit</artifactId>
     </dependency>
   </dependencies>
 </project>

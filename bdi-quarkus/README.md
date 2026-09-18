@@ -17,6 +17,7 @@ bdi-quarkus/
   config/bdi-config-messaging-amqp   MDB-like consumer defaults, broker keys
   config/bdi-config-jms        JMS over AMQP on the same broker keys
   config/bdi-config-messaging-kafka  commit and failure strategies, cluster keys
+  config/bdi-config-audit      Envers naming convention (_aud, rev, revtype, revinfo), deletions recorded
   starters/bdi-*               empty jars whose dependency set is the point
 ```
 
@@ -35,7 +36,9 @@ bdi-quarkus/
 | `bdi-jms-amqp` | `quarkus-qpid-jms` 2.12.0 (amqphub) | `bdi-config-jms`: the JMS connection follows the `amqp-*` keys | **not in the RHBQ platform, unsupported** |
 | `bdi-messaging-kafka` | `quarkus-messaging-kafka` | `bdi-config-messaging-kafka`: throttled commits, dead-letter topic, earliest; `kafka.*` contract keys | supported |
 | `bdi-scheduler-local` | `quarkus-scheduler` (in-memory, per instance) | | supported |
-| `bdi-test` (test scope) | `quarkus-junit`, `rest-assured` | | supported |
+| `bdi-jpa-panache` | `quarkus-hibernate-orm-panache` (repositories, active record, paging, projections); a capability next to a `bdi-jpa-*` variation | `bdi-config-jpa` | supported |
+| `bdi-jpa-audit` | `quarkus-hibernate-envers` (`@Audited` history) | `bdi-config-audit` | supported |
+| `bdi-test` (test scope) | `quarkus-junit`, `quarkus-junit5-mockito` (`@InjectMock`), `rest-assured` | | supported |
 
 An application declares capabilities, and picks the variation its estate needs:
 
@@ -55,7 +58,7 @@ confirmed against the RHBQ supported-configurations list, design note §9):
 
 | Capability | Variations | Starters (planned) |
 |---|---|---|
-| Relational data | PostgreSQL, Oracle, Db2 | `bdi-jpa-postgresql`, `bdi-jpa-oracle`, `bdi-jpa-db2` (done); `bdi-flyway-postgresql` (done), `bdi-flyway-oracle`, Db2 to check |
+| Relational data | PostgreSQL, Oracle, Db2 | `bdi-jpa-postgresql`, `bdi-jpa-oracle`, `bdi-jpa-db2` (done); `bdi-flyway-postgresql` (done), `bdi-flyway-oracle`, Db2 to check; capabilities on top of any of them: `bdi-jpa-panache`, `bdi-jpa-audit` (done) |
 | Timers | clustered Quartz on the database | `bdi-scheduler` (done) |
 | Queues and topics | AMQ Broker over AMQP 1.0 (Reactive Messaging or JMS), IBM MQ (JMS, resource adapter: Quarkiverse, unsupported), Kafka / AMQ Streams | `bdi-messaging-amqp`, `bdi-jms-amqp`, `bdi-messaging-kafka` (done); `bdi-jms-ibmmq`, `bdi-kafka-streams` planned |
 | Inbound identity | Red Hat build of Keycloak (OIDC), Active Directory / LDAP (Elytron) | `bdi-security-oidc`, `bdi-security-ldap` |

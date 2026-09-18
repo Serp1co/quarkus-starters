@@ -1,0 +1,23 @@
+# =============================================================================
+# POC data - developer-owned configuration (design notes 2.1 and 2.2).
+# Only "%dev" / "%test" inner-loop values, plus the one build-time line below
+# that is a code decision, not an environment one.
+# =============================================================================
+quarkus:
+  hibernate-orm:
+    cache:
+      # Reference data (IntermediaryType) in the second-level cache, local to each instance: a TTL bounds how
+      # long two instances can disagree after a change (there is no cluster-wide invalidation, see README).
+      "it.bancaditalia.quarkus.poc.data.domain.IntermediaryType":
+        expiration:
+          max-idle: 10M
+"%dev":
+  registry:
+    supervisor: "Vigilanza (dev)"
+"%test":
+  quarkus:
+    hibernate-orm:
+      statistics: true      # the cache test reads the second-level hit count
+  registry:
+    supervisor: "Vigilanza (test)"
+    max-page-size: 5

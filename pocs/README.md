@@ -14,7 +14,8 @@ measured numbers. Every POC builds from the root parent POM, so all of them shar
 | Remote EJB | Replacement matrix: REST client, gRPC, façade, tx and identity propagation (4.2) | `remote-ejb-replacement` | planned, last |
 | Messaging | Reactive Messaging vs JMS over AMQP 1.0 on AMQ Broker; outbox, idempotent consumer, redelivery and DLQ (4.3) | [`messaging-amqp`](messaging-amqp/) | done; IBM MQ variation planned |
 | Kafka | keyed records, ordering per partition, throttled commits, dead-letter topic, idempotent consumer (4.4) | [`messaging-kafka`](messaging-kafka/) | done; Streams and schema registry called out |
-| Security | OIDC/RHBK and AD/LDAP inbound, token propagation outbound, TLS registry, audit events (4.5) | `security-oidc`, `security-ldap` | planned |
+| Data | Hibernate ORM and Panache: the EAP DAO carried over next to the Panache repository, sequences and batching, optimistic locking, second-level cache, Envers history | [`data-hibernate-panache`](data-hibernate-panache/) | done |
+| Security | AD/LDAP inbound first, then OIDC/RHBK; token propagation outbound, TLS registry, audit events (4.5) | `security-ldap`, `security-oidc` | next |
 
 Per-POC deliverable checklist (design note 4.6):
 
