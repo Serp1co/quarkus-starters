@@ -1,0 +1,6 @@
+{
+  "module": "bdi-config-flyway",
+  "keys": [
+    { "name": "quarkus.flyway.migrate-at-start", "type": "boolean", "default": "true", "doc": "Run the migrations of the release at start-up (false where the DBA applies them)" }
+  ]
+}

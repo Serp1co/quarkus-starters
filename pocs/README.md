@@ -19,6 +19,6 @@ measured numbers. Every POC builds from the root parent POM, so all of them shar
 Per-POC deliverable checklist (design note 4.6):
 
 - [ ] README split into *what the developer wrote* / *what the platform provided*
-- [ ] config contract (`META-INF/config-contract.json`, kept in sync by a test)
+- [ ] config contract (`META-INF/config-contract.json`, derived by the build, asserted by `ConformanceEndpointTest`)
 - [ ] AAP job template deploying it on every stage of the ladder (VM + systemd, Podman + Quadlet, OpenShift)
 - [ ] measured numbers: startup time, RSS, throughput, build time, config lines owned by the developer, deploy and rollback time

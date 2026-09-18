@@ -49,20 +49,20 @@ Two lessons that only show up when you run it:
 
 `src/main/java/it/bancaditalia/quarkus/poc/ejb`: `domain` (two entities, one exception), `repository`, `service`
 (instruction, batch, settlement, notifier), `timer`, `reference`, `api`, `config` (`SettlementConfig`, the
-`@ConfigMapping`, and its contract contributor). `application.yaml` holds `%dev`/`%test` values only; the
+`@ConfigMapping`; the contract is derived from it). `application.yaml` holds `%dev`/`%test` values only; the
 starters are `bdi-rest-jackson`, `bdi-jpa-postgresql`, `bdi-flyway-postgresql`, `bdi-scheduler`,
 `bdi-observability`, `bdi-test`.
 
 Tests: `SettlementServiceTest` (batch isolation: settled, rejected, and the failing batch left pending; the
 asynchronous notification), `SettlementTimerTest` (jobs in `qrtz_job_details`, this instance in
 `qrtz_scheduler_state`, the timer firing within 15 s from the 2 s test interval), `InstructionResourceTest`,
-`ConformanceEndpointTest` (the scheduler and Flyway defaults traced to their modules), `ConfigContractTest`,
-`ArtifactConfigLintTest`, and the integration test on the packaged artifact.
+`ConformanceEndpointTest` (the scheduler and Flyway defaults traced to their modules, the derived contract
+carrying the datasource, XA and Flyway keys), `ArtifactConfigLintTest`, and the integration test on the packaged artifact.
 
 ## Config contract
 
-`META-INF/config-contract.json`, application keys first (`settlement.*`), then the platform keys contributed
-by the config modules in use: datasource, XA node name and object store (`bdi-config-jpa`), Quartz cluster
+`META-INF/config-contract.json`, derived at build time: application keys first (`settlement.*`, from the
+`@ConfigMapping`), then the platform keys declared by the descriptors of the config modules in use: datasource, XA node name and object store (`bdi-config-jpa`), Quartz cluster
 mode and scheduler switch (`bdi-config-scheduler`), migrate-at-start (`bdi-config-flyway`), ports and log level.
 
 ## Run it

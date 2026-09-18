@@ -33,7 +33,7 @@ Everything under [`src/main/java/it/bancaditalia/quarkus/poc/jakarta`](src/main/
 | `service` | `AccountService`, `TransferService`: the business transactions | `@Stateless` became `@ApplicationScoped` + `@Transactional`; `@ApplicationException(rollback=true)` became a RuntimeException |
 | `api` | JAX-RS resources, record DTOs with constraints, `@Provider` exception mappers | unchanged (Jakarta REST 3.1 has no 422 constant, see cookbook 5) |
 | `validation` | `@Iban` constraint with a mod-97 `ConstraintValidator` | unchanged |
-| `config` | `LedgerConfig`, one `@ConfigMapping` interface, and `LedgerContract`, the bean that contributes it to the config contract | replaces JNDI env entries and system-property lookups |
+| `config` | `LedgerConfig`, one `@ConfigMapping` interface; the config contract is derived from it at build time, nothing else to write | replaces JNDI env entries and system-property lookups |
 
 Configuration the developer owns, [`src/main/resources/application.yaml`](src/main/resources/application.yaml):
 **zero** non-profile lines. Only `"%dev":` and `"%test":` inner-loop values (the seed script and the
@@ -45,7 +45,7 @@ no port: `ArtifactConfigLintTest` fails the build if one appears. Deleted from t
 Tests, [`src/test/java`](src/test/java): `@QuarkusTest` + RestAssured for the API (`AccountResourceTest`,
 `TransferResourceTest`), `@Inject`-ed services for the transaction semantics (`TransferServiceTest` proves
 that a failed debit rolls back the credit and the inserted row), the management endpoint
-(`ConformanceEndpointTest`), the contract file sync (`ConfigContractTest`), the lint
+(`ConformanceEndpointTest`, which also proves the derived contract carries the platform keys), the lint
 (`ArtifactConfigLintTest`), and the same API tests against the packaged fast-jar
 (`*IT`, `@QuarkusIntegrationTest`). Continuous testing runs all of them on every save in dev mode.
 
@@ -77,11 +77,11 @@ See [platform/README.md](platform/README.md) for the replayable stage-1 walkthro
 
 ## Config contract
 
-Exported to [`src/main/resources/META-INF/config-contract.json`](src/main/resources/META-INF/config-contract.json)
-(inside the artifact, kept in sync by `ConfigContractTest`; refresh with
-`./mvnw test -Dconfig-contract.update=true`). The application keys come from `LedgerConfig`; the platform
-keys from the config modules of the starters in use. AAP validates the rendered file against it before a
-deploy.
+Derived at build time into `target/classes/META-INF/config-contract.json` (inside the artifact, never in
+the sources: `ContractExporter` runs in the `process-classes` phase for every module that ships an
+`application.yaml`). The application keys come from `LedgerConfig`; the platform keys from the
+`bdi-contract-platform.json` descriptors of the config modules behind the starters in use. AAP validates
+the rendered file against it before a deploy.
 
 | Key | Type | Required | Default | Owner | Description |
 |---|---|---|---|---|---|

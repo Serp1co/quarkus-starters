@@ -82,15 +82,19 @@ confirmed against the RHBQ supported-configurations list, design note §9):
 
    Profile sections (`"%dev":`, `"%test":`) in a defaults file work like anywhere else, which is how the
    inner loop gets plain logs and `drop-and-create` without a line in the application.
-3. It contributes its platform-owned keys to the application's config contract through a
-   `ContractContributor` bean (`JpaPlatformKeys`, `RestPlatformKeys`, `ObservabilityPlatformKeys`).
-   `bdi-config-observability` assembles the contributions with the application's own into the
-   `ConfigContract` that `/q/platform` echoes and `META-INF/config-contract.json` mirrors.
+3. It declares its platform-owned keys in `META-INF/bdi-contract-platform.json` (a descriptor, no code:
+   name, type, required, default, secret, doc; messaging modules add per-channel templates such as
+   `address` or `topic`, `group.id` with `{application}` and `{channel}` placeholders). At build time the
+   `bdi-application` profile of the root pom runs `ContractExporter` on every module that ships an
+   `application.yaml`: it reads the application's `@ConfigMapping` interfaces and `@Incoming`/`@Outgoing`/
+   `@Channel` names from the compiled classes, merges the descriptors found on the classpath and writes
+   `META-INF/config-contract.json` into the artifact. Nobody writes a contract: the application declares
+   what it reads, the platform derives what it must render, and `/q/platform` echoes the result.
 4. It is a plain jar with a Jandex index (for its CDI beans), not a Quarkus extension. The day a module
    needs build steps (enforcing, generating, dev-UI cards), it becomes one without changing its users.
 
 Rules: a default is always overridable; a default is never an environment value; every platform key a
-module relies on is in its contract contribution; the module's README line in the table above says what
+module relies on is in its `bdi-contract-platform.json`; the module's README line in the table above says what
 it standardizes.
 
 ## BOM

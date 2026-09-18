@@ -14,4 +14,17 @@ public interface OrdersConfig {
     @WithDefault("50")
     @Doc("Outbox rows published per relay tick")
     int relayBatchSize();
+
+    Jms jms();
+
+    interface Jms {
+
+        @WithDefault("orders.notifications")
+        @Doc("JMS queue of the notification variation; provisioned by redhat.amq_broker")
+        String notificationsQueue();
+
+        @WithDefault("5")
+        @Doc("Selector of the notification listener: JMSPriority >= this value")
+        int minPriority();
+    }
 }

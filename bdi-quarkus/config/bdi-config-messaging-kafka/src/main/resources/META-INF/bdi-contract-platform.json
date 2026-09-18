@@ -1,0 +1,16 @@
+{
+  "module": "bdi-config-messaging-kafka",
+  "keys": [
+    { "name": "kafka.bootstrap.servers", "type": "String", "required": true, "doc": "Kafka / AMQ Streams bootstrap servers" },
+    { "name": "kafka.security.protocol", "type": "String", "default": "PLAINTEXT", "doc": "PLAINTEXT, SSL, SASL_SSL: the platform's choice per environment" },
+    { "name": "kafka.sasl.mechanism", "type": "String", "default": "", "doc": "OAUTHBEARER with RHBK, SCRAM-SHA-512, or empty" }
+  ],
+  "channels": {
+    "incoming": [
+      { "suffix": "topic", "type": "String", "default": "{channel}", "doc": "Topic the channel consumes; topics and ACLs are platform resources" },
+      { "suffix": "group.id", "type": "String", "default": "{application}", "doc": "Consumer group: the platform's naming convention" },
+      { "suffix": "dead-letter-queue.topic", "type": "String", "default": "dead-letter-topic-{channel}", "doc": "Where failed records go (failure-strategy dead-letter-queue)" }
+    ],
+    "outgoing": [ { "suffix": "topic", "type": "String", "default": "{channel}", "doc": "Topic the channel produces to" } ]
+  }
+}

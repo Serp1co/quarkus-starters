@@ -1,5 +1,9 @@
 package it.bancaditalia.quarkus.platform.contract;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,10 +17,11 @@ import org.eclipse.microprofile.config.ConfigValue;
 /**
  * The configuration contract of one application: every key the platform may or must render for it.
  * <p>
- * Built from the application's {@code @ConfigMapping} interfaces (what the developer declared) plus the
- * Quarkus keys of the extensions it uses (what the platform owns). Exported as JSON so that Ansible
- * Automation Platform can validate the rendered {@code application.properties} before a deploy, and
- * resolved at runtime by the conformance endpoint so that ops can see which config source served each key.
+ * Derived by {@link ContractExporter} at build time from the application's {@code @ConfigMapping} interfaces
+ * and messaging channels (what the code needs) plus the descriptors of the bdi-config-* modules on its
+ * classpath (what the platform owns for the extensions in use). Nobody writes it: the platform's parent POM
+ * generates {@code META-INF/config-contract.json} into every artifact, the deploy role validates the rendered
+ * files against it, and the conformance endpoint resolves it at runtime.
  */
 public final class ConfigContract {
 
@@ -60,6 +65,23 @@ public final class ConfigContract {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    /** Reads a contract written by {@link #toJson()}. */
+    public static ConfigContract fromJson(String json) {
+        try {
+            JsonNode root = new ObjectMapper().readTree(json);
+            Builder builder = builder();
+            for (JsonNode k : root.path("keys")) {
+                builder.keys.add(new Key(k.path("name").asText(), k.path("type").asText(), k.path("required").asBoolean(),
+                        k.path("default").isNull() ? Optional.empty() : Optional.of(k.path("default").asText()),
+                        k.path("secret").asBoolean(), Owner.valueOf(k.path("owner").asText().toUpperCase(Locale.ROOT)),
+                        k.path("doc").asText("")));
+            }
+            return builder.build();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public List<Key> keys() {
@@ -148,6 +170,14 @@ public final class ConfigContract {
         /** A platform-owned secret: required, delivered from the vault, masked everywhere. */
         public Builder platformSecret(String name, String doc) {
             keys.add(new Key(name, "String", true, Optional.empty(), true, Owner.PLATFORM, doc));
+            return this;
+        }
+
+        /** Adds a key unless one with the same name exists (two modules may describe the same Quarkus key). */
+        public Builder addIfAbsent(Key key) {
+            if (keys.stream().noneMatch(k -> k.name().equals(key.name()))) {
+                keys.add(key);
+            }
             return this;
         }
 

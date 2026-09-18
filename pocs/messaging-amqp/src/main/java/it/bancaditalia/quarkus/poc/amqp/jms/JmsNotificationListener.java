@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import it.bancaditalia.quarkus.poc.amqp.config.OrdersConfig;
 import org.jboss.logging.Logger;
 
 /**
@@ -31,11 +31,8 @@ public class JmsNotificationListener {
     @Inject
     ConnectionFactory connectionFactory;
 
-    @ConfigProperty(name = "orders.jms.notifications-queue", defaultValue = "orders.notifications")
-    String queue;
-
-    @ConfigProperty(name = "orders.jms.min-priority", defaultValue = "5")
-    int minPriority;
+    @Inject
+    OrdersConfig config;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "jms-notifications"));
     private final AtomicBoolean running = new AtomicBoolean();
@@ -55,7 +52,8 @@ public class JmsNotificationListener {
     private void loop() {
         while (running.get()) {
             try (JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED);
-                    JMSConsumer consumer = context.createConsumer(context.createQueue(queue), "JMSPriority >= " + minPriority)) {
+                    JMSConsumer consumer = context.createConsumer(context.createQueue(config.jms().notificationsQueue()),
+                            "JMSPriority >= " + config.jms().minPriority())) {
                 while (running.get()) {
                     Message message = consumer.receive(1000);
                     if (message == null) {

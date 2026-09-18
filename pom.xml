@@ -48,6 +48,9 @@
     <enforcer-plugin.version>3.6.3</enforcer-plugin.version>
     <jandex-plugin.version>3.6.0</jandex-plugin.version>
     <assembly-plugin.version>3.7.1</assembly-plugin.version>
+    <exec-plugin.version>3.6.4</exec-plugin.version>
+    <!-- Every application module gets its config contract derived at build time; libraries opt out. -->
+    <bdi.contract.skip>false</bdi.contract.skip>
     <!-- Integration tests (@QuarkusIntegrationTest against the packaged artifact) are opt-in: -DskipITs=false -->
     <skipITs>true</skipITs>
   </properties>
@@ -287,6 +290,53 @@
   </build>
 
   <profiles>
+    <profile>
+      <!--
+        An application is a module that ships src/main/resources/application.yaml; libraries (bdi-config-*,
+        starters, concepts) do not, so the contract exporter only ever runs where there is something to derive.
+        Developers do not declare anything: the profile activates on that file alone.
+      -->
+      <id>bdi-application</id>
+      <activation>
+        <file>
+          <exists>${basedir}/src/main/resources/application.yaml</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <!--
+              The platform derives each application's config contract from its compiled classes and the
+              descriptors of the bdi-config-* modules on its classpath (design note 2.2): nobody writes it.
+              Runs after compilation so that tests, the packaged artifact and the deploy role see the same file.
+            -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${exec-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>bdi-config-contract</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <skip>${bdi.contract.skip}</skip>
+                  <mainClass>it.bancaditalia.quarkus.platform.contract.ContractExporter</mainClass>
+                  <includeProjectDependencies>true</includeProjectDependencies>
+                  <classpathScope>runtime</classpathScope>
+                  <arguments>
+                    <argument>${project.build.outputDirectory}</argument>
+                    <argument>${project.build.outputDirectory}/META-INF/config-contract.json</argument>
+                    <argument>${project.artifactId}</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <!--
       Default: RHBQ artifacts come from the Red Hat GA repository (they are not on Maven Central).
       In the bank this repository is mirrored by Nexus/Artifactory; a settings.xml mirror overrides the URL.

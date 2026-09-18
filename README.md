@@ -85,7 +85,8 @@ export KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092                                  #
 - **Config entry points (§2.2).** Rendered files at a fixed path, named in `QUARKUS_CONFIG_LOCATIONS` as
   `secrets.yaml,instance.yaml,application-<env>.yaml` (first listed wins, and they beat environment variables);
   the active profile through `QUARKUS_PROFILE`; per-instance values rendered, not passed as env. What the platform must render is declared in
-  `@ConfigMapping` interfaces and exported as `META-INF/config-contract.json` by each application.
+  `@ConfigMapping` interfaces and derived at build time into `META-INF/config-contract.json`, with the
+  platform keys coming from the descriptors of the config modules: no application authors a contract.
 - **No unit files, no environment in images (§3).** Application repositories never contain a systemd unit;
   the Dockerfile carries no configuration. Both belong to the AAP roles.
 - **Support tags (§7).** Every extension a POC uses is tagged *RHBQ-supported* or *Quarkiverse* in its

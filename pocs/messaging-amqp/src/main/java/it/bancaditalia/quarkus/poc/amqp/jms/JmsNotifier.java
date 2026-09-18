@@ -6,7 +6,7 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSProducer;
 import jakarta.jms.TextMessage;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import it.bancaditalia.quarkus.poc.amqp.config.OrdersConfig;
 
 /**
  * The JMS API variation (design note 4.3, "code that leans on JMS semantics"): a transacted session, a priority,
@@ -18,15 +18,15 @@ public class JmsNotifier {
     @Inject
     ConnectionFactory connectionFactory;
 
-    @ConfigProperty(name = "orders.jms.notifications-queue", defaultValue = "orders.notifications")
-    String queue;
+    @Inject
+    OrdersConfig config;
 
     public void notify(String reference, String text, int priority) {
         try (JMSContext context = connectionFactory.createContext(JMSContext.SESSION_TRANSACTED)) {
             TextMessage message = context.createTextMessage(text);
             message.setStringProperty("reference", reference);
             JMSProducer producer = context.createProducer().setPriority(priority);
-            producer.send(context.createQueue(queue), message);
+            producer.send(context.createQueue(config.jms().notificationsQueue()), message);
             context.commit(); // nothing leaves the session before the commit, as on EAP
         } catch (jakarta.jms.JMSException e) {
             throw new IllegalStateException(e);

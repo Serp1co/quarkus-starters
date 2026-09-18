@@ -25,7 +25,7 @@ and under Dev Services in CI; IBM MQ is the next variation.
 | MDB rollback returns the message to the queue | `failure-strategy: modified-failed` (standardized by `bdi-config-messaging-amqp`): the broker redelivers, then dead-letters after `max-delivery-attempts` (10 on Artemis by default) | `bdi-config-messaging-amqp` |
 | duplicate delivery after a crash between commit and ack | `processed_message` table keyed by the AMQP message id (= outbox id): a redelivery changes nothing | `OrderConsumer.process` |
 | activation-config `messageSelector`, transacted session | the JMS API: `createContext(SESSION_TRANSACTED)`, `createConsumer(queue, "JMSPriority >= 5")`, rollback and `JMSRedelivered` | `JmsNotifier`, `JmsNotificationListener` |
-| queue names in `standalone.xml`, JNDI lookups | the developer names channels (`orders-out`, `orders-in`); addresses are platform keys with the channel name as default; the topology is `redhat.amq_broker`'s | `OrdersContract` |
+| queue names in `standalone.xml`, JNDI lookups | the developer names channels (`orders-out`, `orders-in`); addresses are platform keys with the channel name as default; the topology is `redhat.amq_broker`'s | `bdi-config-messaging-amqp` descriptor, derived per channel |
 
 ## The failure modes, as tested
 

@@ -1,0 +1,11 @@
+{
+  "module": "bdi-config-jpa",
+  "keys": [
+    { "name": "quarkus.datasource.jdbc.url", "type": "String", "required": true, "doc": "JDBC URL of the application database (Agroal pool)" },
+    { "name": "quarkus.datasource.username", "type": "String", "required": true, "doc": "Database user of this application" },
+    { "name": "quarkus.datasource.password", "type": "String", "required": true, "secret": true, "doc": "Database password, delivered from the vault" },
+    { "name": "quarkus.datasource.jdbc.max-size", "type": "int", "default": "20", "doc": "Upper bound of the connection pool" },
+    { "name": "quarkus.transaction-manager.node-name", "type": "String", "default": "quarkus", "doc": "XA recovery node name: unique per instance (EAP: the server name)" },
+    { "name": "quarkus.transaction-manager.object-store.directory", "type": "String", "default": "ObjectStore", "doc": "XA transaction log: persistent, node-local, outside the release directory (EAP: standalone/data/tx-object-store)" }
+  ]
+}

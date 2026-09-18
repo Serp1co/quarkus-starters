@@ -14,16 +14,21 @@
   <artifactId>platform-contract</artifactId>
   <name>Concept: platform contract</name>
   <description>
-    The configuration contract between a developer and the platform (design note 2.2): export of the keys
-    declared through @ConfigMapping, echo of which config source served each key at runtime, and the lint
-    that keeps environment-specific values out of the artifact (design note 2.1). Plain Java, no Quarkus
-    dependency, shared by every POC. Candidate content for a bdi-quarkus-* internal extension.
+    The configuration contract between an application and the platform (design note 2.2), derived, never
+    authored: the exporter the parent POM runs on every application scans the compiled classes for
+    @ConfigMapping interfaces and messaging channels, merges the descriptors shipped by the bdi-config-*
+    modules, and writes META-INF/config-contract.json into the artifact. Also the runtime echo (which config
+    source served each key) and the lint that keeps environment-specific values out of the artifact.
   </description>
 
   <dependencies>
     <dependency>
       <groupId>io.smallrye.config</groupId>
       <artifactId>smallrye-config-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

@@ -1,0 +1,14 @@
+{
+  "module": "bdi-config-messaging-amqp",
+  "keys": [
+    { "name": "amqp-host", "type": "String", "required": true, "doc": "AMQ Broker host (AMQP 1.0 acceptor)" },
+    { "name": "amqp-port", "type": "int", "default": "5672", "doc": "AMQ Broker AMQP port" },
+    { "name": "amqp-username", "type": "String", "required": true, "doc": "Broker user of this application" },
+    { "name": "amqp-password", "type": "String", "required": true, "secret": true, "doc": "Broker password, delivered from the vault" },
+    { "name": "amqp-use-ssl", "type": "boolean", "default": "false", "doc": "TLS to the broker (with the TLS registry, cookbook 12)" }
+  ],
+  "channels": {
+    "incoming": [ { "suffix": "address", "type": "String", "default": "{channel}", "doc": "AMQP address (queue or topic) the channel consumes; provisioned by redhat.amq_broker" } ],
+    "outgoing": [ { "suffix": "address", "type": "String", "default": "{channel}", "doc": "AMQP address the channel publishes to; provisioned by redhat.amq_broker" } ]
+  }
+}

@@ -38,15 +38,16 @@ with a handful of mandatory issues, all in the deployment descriptors. Everythin
 4. Replace `@Stateless`/`@Singleton` with `@ApplicationScoped` and put `@Transactional` on the methods that
    were container-managed transactions.
 5. Move every system-property or JNDI lookup into a `@ConfigMapping` interface; add `@Doc` for the ops
-   reader and `@Secret` on vault-delivered keys; define the contract and the `ConfigContractTest`
-   (cookbook 3, `concepts/platform-contract`).
+   reader and `@Secret` on vault-delivered keys. That is the whole contract: the build derives
+   `META-INF/config-contract.json` from the mapping and the config modules in use (cookbook 3,
+   `concepts/platform-contract`).
 6. Leave entities, repositories, resources, DTOs and validators alone.
 7. Tests: `@QuarkusTest` + RestAssured for the API, `@Inject` the services for transaction semantics,
    `@QuarkusIntegrationTest` for the packaged artifact. Keep a `"%test":` section in `application.yaml` for
    what the inner loop needs, nothing else.
 8. Run `./mvnw quarkus:dev`: Dev Services start the database, continuous testing runs the suite on save,
    the Dev UI shows the effective configuration.
-9. Hand over the fast-jar and `META-INF/config-contract.json`; the platform does the rest (POC A's
+9. Hand over the fast-jar (the derived `META-INF/config-contract.json` is inside it); the platform does the rest (POC A's
    [platform walkthrough](../../pocs/a-jakarta-classic/platform/README.md)).
 
 ## Things that bit, so you do not have to find them again

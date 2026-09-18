@@ -1,0 +1,11 @@
+{
+  "module": "test-module",
+  "keys": [
+    { "name": "quarkus.http.port", "type": "int", "default": "8080", "doc": "API port" },
+    { "name": "test.secret", "type": "String", "required": true, "secret": true, "doc": "from the vault" }
+  ],
+  "channels": {
+    "incoming": [ { "suffix": "address", "type": "String", "default": "{channel}", "doc": "AMQP address" } ],
+    "outgoing": [ { "suffix": "topic", "type": "String", "default": "{application}-{channel}", "doc": "topic" } ]
+  }
+}

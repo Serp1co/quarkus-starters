@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -27,7 +28,10 @@ class ConformanceEndpointTest {
                 .body("config.find { it.key == 'quarkus.quartz.clustered' }.value", is("true"))
                 .body("config.find { it.key == 'quarkus.quartz.clustered' }.source", is("BuildTime RunTime Fixed"))
                 .body("config.find { it.key == 'quarkus.flyway.migrate-at-start' }.source", is("BdiDefaults[bdi-config-flyway]"))
-                .body("config.find { it.key == 'settlement.interval' }.source", containsString("application.yaml"));
+                .body("config.find { it.key == 'settlement.interval' }.source", containsString("application.yaml"))
+                // the contract was derived at build time: the application's mapping plus the modules' descriptors
+                .body("config.key", hasItems("settlement.max-instruction-amount", "quarkus.transaction-manager.node-name",
+                        "quarkus.transaction-manager.object-store.directory", "quarkus.flyway.migrate-at-start"));
         given().port(managementPort)
                 .when().get("/q/health/ready")
                 .then().statusCode(200)

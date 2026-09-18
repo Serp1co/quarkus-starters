@@ -1,0 +1,7 @@
+{
+  "module": "bdi-config-observability",
+  "keys": [
+    { "name": "quarkus.management.port", "type": "int", "default": "9000", "doc": "Management port: health, conformance endpoint" },
+    { "name": "quarkus.log.level", "type": "String", "default": "INFO", "doc": "Root log level" }
+  ]
+}
