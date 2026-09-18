@@ -20,6 +20,7 @@ Section numbers quoted below (§2.1, §4.6, ...) refer to it.
 | [`bdi-quarkus/`](bdi-quarkus/) | The bank-owned layer of §2.3: the BOM, the opinionated **starters** developers depend on instead of Quarkus extensions (`bdi-rest-jackson`, `bdi-jpa-postgresql`/`-oracle`/`-db2`, `bdi-observability`, `bdi-test`) and the **config modules** that configure them in a standardized way. |
 | [`concepts/`](concepts/) | Platform concepts shared by the POCs, as code. [`platform-contract`](concepts/platform-contract/): config contract export, config-source echo, artifact lint (§2.1, §2.2). |
 | [`pocs/`](pocs/) | One POC per migration class (§4). Catalog and status in [pocs/README.md](pocs/README.md). |
+| [`ansible/`](ansible/) | The platform side (§3 stage 1, §5): the deploy role (render fragments, validate against the artifact's contract, install, health-gated restart, conformance check), the rollback and validate playbooks, a sandbox inventory. Proposal, runs. |
 | [`docs/cookbooks/`](docs/cookbooks/) | One page per cookbook (§6). Index and status in [docs/cookbooks/README.md](docs/cookbooks/README.md). |
 | [`docs/design/`](docs/design/) | Design notes and the [addendum of 18 September](docs/design/2026-09-18-addendum-variations-yaml-starters.md) (variations, YAML, starters). |
 | [`.github/workflows/build.yml`](.github/workflows/build.yml) | CI: builds and tests every module against RHBQ. |
@@ -98,5 +99,6 @@ export QUARKUS_DATASOURCE_USERNAME=poc QUARKUS_DATASOURCE_PASSWORD=poc
 | `bdi-quarkus`: BOM, 6 starters, 4 config modules | done; messaging, security, secrets, SOAP and Spring variations planned with their POCs |
 | Concept `platform-contract` | done, unit-tested |
 | POC A, Jakarta classic | on the starters, YAML only, zero non-profile config lines; tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
+| Ansible deploy role and playbooks | proposal that runs in the sandbox (render, validate, install, rollback, verify); systemd, Quadlet and OpenShift variants to exercise on real hosts |
 | Cookbook 5 (JAX-RS / CDI / JPA from EAP) | draft |
 | Other POCs and cookbooks | planned, see the indexes |

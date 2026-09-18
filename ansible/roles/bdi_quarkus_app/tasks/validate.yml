@@ -1,0 +1,22 @@
+---
+# 3. Pre-deploy validation (design note 5): the rendered configuration must satisfy the contract of exactly
+#    the artifact being deployed, before any file or service on the host changes.
+- name: Check the rendered configuration against the contract
+  ansible.builtin.set_fact:
+    bdi_check: "{{ bdi_rendered.config | bdi_check(bdi_secrets, bdi_contract) }}"
+  no_log: true
+
+- name: Keys not declared in the contract (informational, Quarkus keys of extensions without a contract line)
+  ansible.builtin.debug:
+    msg: "{{ bdi_check.unknown }}"
+  when: bdi_check.unknown | length > 0
+
+- name: Stop before touching the host if the contract is not satisfied
+  ansible.builtin.assert:
+    that:
+      - bdi_check.missing | length == 0
+      - bdi_check.misplaced | length == 0
+    fail_msg: >-
+      {{ bdi_app }} {{ bdi_version }} in {{ bdi_env }}: required keys missing from the inventory: {{ bdi_check.missing }};
+      secret keys that must come from the vault, not from inventory: {{ bdi_check.misplaced }}
+    success_msg: "contract satisfied: {{ bdi_contract['keys'] | length }} keys checked"

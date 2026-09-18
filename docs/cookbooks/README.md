@@ -18,6 +18,6 @@ has been run on at least stage 1 of the target ladder, so that every claim in it
 | 11 | Spring compat vs rewrite | POC D | planned |
 | 12 | Security: OIDC/RHBK, Elytron LDAP for legacy, mTLS via TLS registry, path policies, audit events | Security POC | planned |
 | 13 | Observability: JSON logs to SIEM, Micrometer/Prometheus, OpenTelemetry tracing | POC A (JSON logs, health) then all | planned |
-| 14 | AAP deploy and rollback on VMs (systemd) | POC A stage 1 | planned |
+| 14 | AAP deploy and rollback on VMs (systemd) | POC A stage 1, [`ansible/`](../../ansible/README.md) | draft: the role and playbooks exist and run in the sandbox; host provisioning and a real systemd run pending |
 | 15 | Container on VM: Podman + Quadlet | POC A stage 2 | planned |
 | 16 | Same app on OpenShift | POC A stage 3 | planned |

@@ -1,0 +1,46 @@
+---
+# 2. The versioned artifact (zip of the fast-jar directory) from Nexus/Artifactory into the releases area,
+#    and the config contract read out of it.
+- name: Release directory {{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}
+  ansible.builtin.file:
+    path: "{{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}"
+    state: directory
+    owner: "{{ bdi_service_user | default(omit) if bdi_service_manager == 'systemd' else omit }}"
+    mode: "0750"
+
+- name: Fetch the artifact
+  ansible.builtin.get_url:
+    url: "{{ bdi_artifact_url }}"
+    dest: "{{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}/{{ bdi_app }}-{{ bdi_version }}.zip"
+    mode: "0640"
+  register: bdi_download
+
+- name: Unpack the fast-jar
+  ansible.builtin.unarchive:
+    src: "{{ bdi_download.dest }}"
+    dest: "{{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}"
+    remote_src: true
+    creates: "{{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}/quarkus-app/quarkus-run.jar"
+
+- name: Locate the application jar
+  ansible.builtin.find:
+    paths: "{{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}/quarkus-app/app"
+    patterns: "*.jar"
+  register: bdi_app_jar
+  check_mode: false
+
+- name: The artifact must be unpacked (in --check mode on a host that never saw this release, it is not)
+  ansible.builtin.assert:
+    that: bdi_app_jar.files | length == 1
+    fail_msg: "no application jar under releases/{{ bdi_version }}/quarkus-app/app: run without --check once, or deploy the release first"
+
+- name: Read META-INF/config-contract.json from the artifact
+  ansible.builtin.command:
+    argv: [unzip, -p, "{{ bdi_app_jar.files[0].path }}", META-INF/config-contract.json]
+  register: bdi_contract_raw
+  changed_when: false
+  check_mode: false
+
+- name: Parse the contract
+  ansible.builtin.set_fact:
+    bdi_contract: "{{ bdi_contract_raw.stdout | from_json }}"

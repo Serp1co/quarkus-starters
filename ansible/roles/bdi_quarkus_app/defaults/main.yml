@@ -1,0 +1,18 @@
+# Required extra-vars: bdi_app, bdi_version, bdi_artifact_url (zip of the fast-jar directory, from Nexus).
+bdi_app: ""
+bdi_version: ""
+bdi_artifact_url: ""
+bdi_env: prod
+bdi_service_manager: systemd
+bdi_root: /opt/bdi
+bdi_etc: /etc/bdi
+bdi_service_user: bdi-app
+bdi_service_group: bdi-app
+bdi_java: /usr/bin/java
+bdi_java_opts: "-XX:MaxRAMPercentage=75"
+bdi_http_port: 8080
+bdi_management_port: 9000
+bdi_apps_dir: "{{ inventory_dir }}/apps"
+bdi_verify_host: 127.0.0.1
+bdi_health_retries: 60
+bdi_health_delay: 2

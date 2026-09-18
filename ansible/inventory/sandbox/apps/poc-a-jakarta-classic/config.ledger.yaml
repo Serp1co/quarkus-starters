@@ -1,0 +1,9 @@
+# Application keys, straight from the contract (META-INF/config-contract.json), in YAML form.
+# A "config" fragment is merged as is into application-<env>.yaml. Amounts are quoted.
+kind: config
+ledger:
+  currency: EUR
+  transfer:
+    max-amount: "1500.00"
+    blocked-ibans:
+      - IT66X0100503200000012345678

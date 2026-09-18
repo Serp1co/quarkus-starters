@@ -1,0 +1,7 @@
+# Sandbox stand-in for the vault. In a real environment this file does not exist: the role resolves
+# ${fromvault.<scope>.<NAME>} through the vault lookup of the estate (community.hashi_vault or CyberArk),
+# or this file is ansible-vault encrypted. Never in inventory in clear text.
+bdi_vault:
+  app:
+    USERNAME: poc
+    PASSWORD: poc

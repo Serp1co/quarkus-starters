@@ -1,0 +1,47 @@
+---
+# 4. Files at the fixed paths, then the release switch. The previous release is remembered for rollback.
+- name: Configuration directory {{ bdi_etc }}/{{ bdi_app }}
+  ansible.builtin.file:
+    path: "{{ bdi_etc }}/{{ bdi_app }}"
+    state: directory
+    owner: "{{ bdi_service_user if bdi_service_manager == 'systemd' else omit }}"
+    group: "{{ bdi_service_group if bdi_service_manager == 'systemd' else omit }}"
+    mode: "0750"
+
+- name: Rendered configuration application-{{ bdi_env }}.yaml
+  ansible.builtin.copy:
+    content: |
+      # Rendered by Ansible for {{ bdi_app }} {{ bdi_version }}, env={{ bdi_env }}. Do not edit: change the fragments under apps/{{ bdi_app }}.
+      {{ bdi_rendered.config | to_nice_yaml(indent=2, sort_keys=false) }}
+    dest: "{{ bdi_etc }}/{{ bdi_app }}/application-{{ bdi_env }}.yaml"
+    owner: "{{ bdi_service_user if bdi_service_manager == 'systemd' else omit }}"
+    mode: "0640"
+  notify: restart application
+
+- name: Secrets from the vault, 0600
+  ansible.builtin.copy:
+    content: "{{ bdi_secrets | to_nice_yaml(indent=2) }}"
+    dest: "{{ bdi_etc }}/{{ bdi_app }}/secrets.yaml"
+    owner: "{{ bdi_service_user if bdi_service_manager == 'systemd' else omit }}"
+    mode: "0600"
+  no_log: true
+  notify: restart application
+
+- name: Remember the release currently active (for rollback)
+  ansible.builtin.stat:
+    path: "{{ bdi_root }}/{{ bdi_app }}/current"
+  register: bdi_current
+
+- name: Record the previous release
+  ansible.builtin.copy:
+    content: "{{ bdi_current.stat.lnk_target | basename }}\n"
+    dest: "{{ bdi_root }}/{{ bdi_app }}/previous"
+    mode: "0640"
+  when: bdi_current.stat.exists and bdi_current.stat.islnk and (bdi_current.stat.lnk_target | basename) != bdi_version
+
+- name: Point current at {{ bdi_version }}
+  ansible.builtin.file:
+    src: "{{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}"
+    dest: "{{ bdi_root }}/{{ bdi_app }}/current"
+    state: link
+  notify: restart application

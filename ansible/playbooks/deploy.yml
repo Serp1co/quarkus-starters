@@ -1,0 +1,15 @@
+---
+# Deploy one application to one environment: rolling, one host at a time behind the load balancer, each
+# host gated on /q/health/ready and checked on /q/platform. Job template survey: bdi_app, bdi_version,
+# bdi_artifact_url (Nexus), limit (the environment group); approval node before prod.
+#
+#   ansible-playbook playbooks/deploy.yml -l uat -e bdi_app=poc-a-jakarta-classic -e bdi_version=1.0.0-SNAPSHOT \
+#       -e bdi_artifact_url=https://nexus/.../poc-a-jakarta-classic-1.0.0-SNAPSHOT-quarkus-app.zip
+- name: Deploy {{ bdi_app }} {{ bdi_version }}
+  hosts: all
+  serial: "{{ bdi_serial | default(1) }}"
+  become: "{{ bdi_become | default(true) }}"
+  vars_files:
+    - "{{ inventory_dir }}/vault/{{ bdi_env }}.yml"   # ansible-vault encrypted, or replaced by a vault lookup
+  roles:
+    - bdi_quarkus_app

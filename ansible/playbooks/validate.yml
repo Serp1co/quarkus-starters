@@ -1,0 +1,18 @@
+---
+# Check mode for the inventory: render and validate against the artifact's contract, deploy nothing.
+# Runs on the controller; the drift-detection variant is deploy.yml --check --diff.
+- name: Validate the configuration of {{ bdi_app }} {{ bdi_version }} for {{ bdi_env }}
+  hosts: all
+  become: false
+  vars_files:
+    - "{{ inventory_dir }}/vault/{{ bdi_env }}.yml"
+  tasks:
+    - ansible.builtin.include_role:
+        name: bdi_quarkus_app
+        tasks_from: render.yml
+    - ansible.builtin.include_role:
+        name: bdi_quarkus_app
+        tasks_from: artifact.yml
+    - ansible.builtin.include_role:
+        name: bdi_quarkus_app
+        tasks_from: validate.yml

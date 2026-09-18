@@ -1,0 +1,28 @@
+---
+# 5. The hardened unit (provisioned by the platform, never by the application repository) and the restart
+#    gated on readiness. The play runs with serial: 1 behind the load balancer.
+- name: Systemd unit bdi-{{ bdi_app }}.service
+  ansible.builtin.template:
+    src: app.service.j2
+    dest: "/etc/systemd/system/bdi-{{ bdi_app }}.service"
+    mode: "0644"
+  notify: restart application
+
+- name: Flush handlers (restart now, not at the end of the play)
+  ansible.builtin.meta: flush_handlers
+
+- name: Enabled and running
+  ansible.builtin.systemd:
+    name: "bdi-{{ bdi_app }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for readiness (the load balancer gate)
+  ansible.builtin.uri:
+    url: "http://{{ bdi_verify_host }}:{{ bdi_management_port }}/q/health/ready"
+    status_code: 200
+  register: bdi_ready
+  until: bdi_ready.status == 200
+  retries: "{{ bdi_health_retries }}"
+  delay: "{{ bdi_health_delay }}"

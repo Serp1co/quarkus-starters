@@ -1,0 +1,10 @@
+# Collections the platform roles build on (design note 5). Installed into the bank's execution environment.
+collections:
+  - name: ansible.posix
+  - name: community.general
+  # one of the two, depending on the estate's vault:
+  # - name: community.hashi_vault
+  # - name: cyberark.pas
+  # stage 1 provisioning (JDK, users, SELinux, firewalld, journald) and stage 2 (Podman + Quadlet):
+  # - name: redhat.rhel_system_roles
+  # - name: containers.podman

@@ -1,0 +1,11 @@
+# Platform-wide conventions (the "fixed paths" of design note 2.2).
+bdi_root: /opt/bdi                 # {{ bdi_root }}/<app>/releases/<version>, {{ bdi_root }}/<app>/current
+bdi_etc: /etc/bdi                  # {{ bdi_etc }}/<app>/application-<env>.yaml and secrets.yaml
+bdi_service_user: bdi-app
+bdi_service_group: bdi-app
+bdi_java: /usr/bin/java
+bdi_java_opts: "-XX:MaxRAMPercentage=75 -XX:+UseParallelGC -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+bdi_service_manager: systemd       # none: render, validate and install only (containers without systemd, dry runs)
+bdi_http_port: 8080
+bdi_management_port: 9000
+bdi_apps_dir: "{{ inventory_dir }}/apps"

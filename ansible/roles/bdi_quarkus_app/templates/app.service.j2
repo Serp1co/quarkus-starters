@@ -1,0 +1,33 @@
+# {{ ansible_managed }}
+# Hardened unit for a Quarkus fast-jar. Provisioned by the platform role; application repositories never
+# contain a unit file (design note 3). The application is configured only through the two variables below.
+[Unit]
+Description=BdI Quarkus application {{ bdi_app }} ({{ bdi_env }})
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ bdi_service_user }}
+Group={{ bdi_service_group }}
+WorkingDirectory={{ bdi_root }}/{{ bdi_app }}/current
+Environment=QUARKUS_PROFILE={{ bdi_env }}
+Environment=QUARKUS_CONFIG_LOCATIONS={{ bdi_etc }}/{{ bdi_app }}/application-{{ bdi_env }}.yaml,{{ bdi_etc }}/{{ bdi_app }}/secrets.yaml
+Environment=JAVA_OPTS={{ bdi_java_opts }}
+ExecStart={{ bdi_java }} $JAVA_OPTS -jar {{ bdi_root }}/{{ bdi_app }}/current/quarkus-app/quarkus-run.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ bdi_root }}/{{ bdi_app }}
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

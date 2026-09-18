@@ -1,0 +1,32 @@
+---
+# Roll back to the previously active release: flip the symlink, restart, gate, verify. The rendered
+# configuration is not touched: it belongs to the environment, not to the release. If the previous release
+# needs different keys, deploy.yml with the previous version and the matching fragments is the way.
+- name: Roll back {{ bdi_app }}
+  hosts: all
+  serial: "{{ bdi_serial | default(1) }}"
+  become: "{{ bdi_become | default(true) }}"
+  vars_files:
+    - "{{ inventory_dir }}/vault/{{ bdi_env }}.yml"
+  tasks:
+    - name: Previous release
+      ansible.builtin.slurp:
+        src: "{{ bdi_root }}/{{ bdi_app }}/previous"
+      register: bdi_previous_raw
+    - name: Target version
+      ansible.builtin.set_fact:
+        bdi_version: "{{ (bdi_previous_raw.content | b64decode).strip() }}"
+    - name: Point current at {{ bdi_version }}
+      ansible.builtin.file:
+        src: "{{ bdi_root }}/{{ bdi_app }}/releases/{{ bdi_version }}"
+        dest: "{{ bdi_root }}/{{ bdi_app }}/current"
+        state: link
+    - name: Restart and gate
+      ansible.builtin.include_role:
+        name: bdi_quarkus_app
+        tasks_from: service.yml
+      when: bdi_service_manager == "systemd"
+    - name: Verify
+      ansible.builtin.include_role:
+        name: bdi_quarkus_app
+        tasks_from: verify.yml

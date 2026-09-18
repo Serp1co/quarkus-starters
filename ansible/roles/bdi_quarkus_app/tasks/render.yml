@@ -1,0 +1,31 @@
+---
+# 1. The fragments of the application for this environment become one application-<env>.yaml plus one
+#    secrets.yaml. Same authoring model as the EAP datasource.*.yaml / system_properties.*.yml fragments.
+- name: Read the configuration fragments of {{ bdi_app }} ({{ bdi_apps_dir }}/{{ bdi_app }})
+  ansible.builtin.set_fact:
+    bdi_fragments: "{{ bdi_fragments | default([]) + [lookup('ansible.builtin.file', item) | from_yaml | combine({'_file': item | basename})] }}"
+  loop: "{{ lookup('ansible.builtin.fileglob', bdi_apps_dir ~ '/' ~ bdi_app ~ '/*.yaml', wantlist=True) | sort }}"
+  delegate_to: localhost
+  run_once: false
+
+- name: Render the configuration tree and route the vault placeholders
+  ansible.builtin.set_fact:
+    bdi_rendered: "{{ bdi_fragments | default([]) | bdi_render }}"
+
+- name: Translation notes
+  ansible.builtin.debug:
+    msg: "{{ bdi_rendered.warnings }}"
+  when: bdi_rendered.warnings | length > 0
+
+- name: Resolve the vault placeholders (swap this task for the estate's vault lookup)
+  ansible.builtin.set_fact:
+    bdi_secrets_flat: "{{ bdi_secrets_flat | default({}) | combine({item.key: bdi_vault[item.value.scope][item.value.name]}) }}"
+  loop: "{{ bdi_rendered.secret_refs | dict2items }}"
+  loop_control:
+    label: "{{ item.key }} <- ${fromvault.{{ item.value.scope }}.{{ item.value.name }}}"
+  no_log: true
+
+- name: Build the secrets tree
+  ansible.builtin.set_fact:
+    bdi_secrets: "{{ bdi_secrets_flat | default({}) | bdi_unflatten }}"
+  no_log: true

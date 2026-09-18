@@ -1,0 +1,4 @@
+# The successor of a system_properties.*.yml fragment: a plain key/value that lands in the rendered file.
+kind: property
+name: quarkus.log.level
+value: INFO

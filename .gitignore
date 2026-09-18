@@ -44,3 +44,6 @@ nb-configuration.xml
 
 # Local TLS certificates
 .certs/
+
+# Ansible
+*.retry

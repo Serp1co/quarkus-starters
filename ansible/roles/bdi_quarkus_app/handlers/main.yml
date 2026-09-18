@@ -1,0 +1,7 @@
+---
+- name: restart application
+  ansible.builtin.systemd:
+    name: "bdi-{{ bdi_app }}"
+    state: restarted
+    daemon_reload: true
+  when: bdi_service_manager == "systemd"

@@ -1,0 +1,21 @@
+---
+# 6. The conformance check of design note 3: same artifact, same contract, on every stage. Reads what the
+#    running instance says about itself, not what the playbook thinks it did.
+- name: Read /q/platform
+  ansible.builtin.uri:
+    url: "http://{{ bdi_verify_host }}:{{ bdi_management_port }}/q/platform"
+    return_content: true
+  register: bdi_platform
+
+- name: Conformance
+  ansible.builtin.assert:
+    that:
+      - bdi_platform.json.application.version == bdi_version
+      - bdi_env in bdi_platform.json.application.profiles
+      - bdi_platform.json.missing | length == 0
+    fail_msg: "running {{ bdi_platform.json.application }} with missing keys {{ bdi_platform.json.missing }}, expected {{ bdi_version }} in {{ bdi_env }}"
+    success_msg: "{{ bdi_platform.json.application.name }} {{ bdi_platform.json.application.version }} in {{ bdi_platform.json.application.profiles }}, contract complete"
+
+- name: Where each contract key came from
+  ansible.builtin.debug:
+    msg: "{{ bdi_platform.json.config | map(attribute='key') | zip(bdi_platform.json.config | map(attribute='source')) | map('join', ' <- ') | list }}"

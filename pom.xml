@@ -42,6 +42,7 @@
     <surefire-plugin.version>3.5.6</surefire-plugin.version>
     <enforcer-plugin.version>3.6.3</enforcer-plugin.version>
     <jandex-plugin.version>3.6.0</jandex-plugin.version>
+    <assembly-plugin.version>3.7.1</assembly-plugin.version>
     <!-- Integration tests (@QuarkusIntegrationTest against the packaged artifact) are opt-in: -DskipITs=false -->
     <skipITs>true</skipITs>
   </properties>
@@ -149,6 +150,11 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <!-- Zip of the fast-jar directory: the versioned artifact AAP fetches from Nexus (design note 5) -->
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${assembly-plugin.version}</version>
         </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>

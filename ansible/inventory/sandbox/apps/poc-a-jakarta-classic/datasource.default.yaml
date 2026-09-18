@@ -1,0 +1,16 @@
+# The same fragment ops write today for an EAP datasource, minus what the artifact decides itself
+# (driver and XA come from the bdi-jpa-* starter the developer chose; jndi and artifacts have no equivalent:
+# the application binds to the logical datasource, and the file belongs to one application directory).
+# The role translates this vocabulary into quarkus.datasource.* keys.
+kind: datasource
+name: default
+type: xa-data-source
+driver: postgresql
+url: "jdbc:postgresql://127.0.0.1:5432/poc"
+user: "${fromvault.app.USERNAME}"
+password: "${fromvault.app.PASSWORD}"
+pool_max: 6
+pool_min: 2
+enable_statistics: true
+trx_isolation: "TRANSACTION_READ_COMMITTED"
+validate_on_match: true
