@@ -1,0 +1,6 @@
+{
+  "module": "bdi-config-security",
+  "keys": [
+    { "name": "quarkus.http.auth.roles-mapping.*", "type": "String", "required": false, "doc": "One key per identity-provider group (AD group, RHBK realm role): the comma-separated application roles it grants. Rendered per environment; every role the code names in @RolesAllowed must be granted by at least one group (the conformance check reports role:<name> otherwise)" }
+  ]
+}

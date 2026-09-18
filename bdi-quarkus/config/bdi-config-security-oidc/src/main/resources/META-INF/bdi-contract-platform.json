@@ -1,0 +1,10 @@
+{
+  "module": "bdi-config-security-oidc",
+  "keys": [
+    { "name": "quarkus.oidc.auth-server-url", "type": "String", "required": true, "doc": "Base URL of the RHBK realm: https://<rhbk>/realms/<realm>; discovery reads the rest" },
+    { "name": "quarkus.oidc.client-id", "type": "String", "required": true, "doc": "The client of this application in the realm" },
+    { "name": "quarkus.oidc.credentials.secret", "type": "String", "required": false, "secret": true, "doc": "Client secret, from the vault; needed by confidential clients (token introspection, code flow), not by a bearer-only API" },
+    { "name": "quarkus.oidc.token.audience", "type": "String", "required": false, "doc": "Expected aud claim; set when the realm issues tokens for several APIs" },
+    { "name": "quarkus.oidc.application-type", "type": "String", "default": "service", "doc": "service (bearer tokens) or web-app (authorization code flow with cookies)" }
+  ]
+}

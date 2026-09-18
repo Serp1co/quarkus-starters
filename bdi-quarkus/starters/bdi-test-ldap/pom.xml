@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>bdi-test-ldap</artifactId>
+  <name>Starter: bdi-test-ldap</name>
+  <description>An Active Directory look-alike for tests (in-memory UnboundID directory, AD object classes and attributes, users under OU=Users, groups under OU=Groups with member): a Quarkus test resource that plays the platform's directory and returns the bdi-config-security-ldap keys. Add with test scope; ship your own ad-directory.ldif on the test classpath to override the default users and groups.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-test-ldap</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-test-common</artifactId>
+    </dependency>
+  </dependencies>
+</project>

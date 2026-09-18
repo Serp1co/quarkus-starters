@@ -1,0 +1,34 @@
+####
+# Stage 2 (Podman + Quadlet) and stage 3 (OpenShift) image: the same fast-jar as stage 1, on the
+# Red Hat UBI 9 OpenJDK 21 runtime image. The image carries no configuration: QUARKUS_CONFIG_LOCATIONS
+# and QUARKUS_PROFILE are set by the Quadlet unit or the Deployment, exactly as the systemd unit does on a VM.
+#
+# Build the artifact:   ./mvnw package
+# Build the image:      podman build -f src/main/docker/Dockerfile.jvm -t poc-security-ldap:jvm .
+# Run it (see platform/README.md for the volume and environment the platform provides):
+#   podman run -i --rm -p 8080:8080 -p 9000:9000 \
+#     -v ./platform/config:/etc/bdi/poc-security-ldap:ro,Z \
+#     --secret poc-security-secrets,type=mount,target=/etc/bdi/poc-security-ldap/secrets.yaml \
+#     -e QUARKUS_CONFIG_LOCATIONS=/etc/bdi/poc-security-ldap/application-uat.yaml,/etc/bdi/poc-security-ldap/secrets.yaml \
+#     -e QUARKUS_PROFILE=uat \
+#     poc-security-ldap:jvm
+#
+# The image uses run-java.sh, which derives -Xmx from the cgroup memory limit (JAVA_MAX_MEM_RATIO) and
+# accepts JAVA_OPTS_APPEND for extra JVM flags: the standardized flags come from the platform, not from here.
+###
+FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.21
+
+ENV LANGUAGE='en_US:en'
+
+# Four layers so that an application change does not invalidate the library layers
+COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
+COPY --chown=185 target/quarkus-app/*.jar /deployments/
+COPY --chown=185 target/quarkus-app/app/ /deployments/app/
+COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
+
+EXPOSE 8080 9000
+USER 185
+ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+ENV JAVA_APP_JAR="/deployments/quarkus-app.jar"
+
+ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]

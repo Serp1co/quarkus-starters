@@ -1,0 +1,21 @@
+# Standardized defaults of bdi-config-security (ordinal 100). The web.xml security constraints of EAP become
+# path policies owned by the platform (design note 4.5): everything under /api needs an identity, /api/public
+# is open, and the fine-grained decision (@RolesAllowed) stays in the code. Health and the conformance endpoint
+# are on the management port, firewalled by the platform, not subject to these policies.
+quarkus:
+  http:
+    auth:
+      permission:
+        api:
+          paths: /api/*
+          policy: authenticated
+        public:
+          paths: /api/public/*
+          policy: permit
+  security:
+    events:
+      enabled: true      # authentication/authorization events fired to CDI: SecurityAuditLogger turns them into log lines
+  log:
+    category:
+      "it.bancaditalia.security.audit":
+        level: INFO

@@ -22,6 +22,27 @@ class ContractExporterTest {
         assertEquals(ConfigContract.Owner.APPLICATION, contract.keys().get(0).owner(), "application keys first");
         assertTrue(contract.keys().get(0).name().startsWith("sample."), "sorted by method name inside the mapping");
         assertTrue(contract.keys().stream().noneMatch(k -> k.name().startsWith("mp.messaging")), "no channels here");
+        assertEquals(java.util.List.of("admin", "reader"), contract.roles(), "roles from @RolesAllowed, sorted");
+    }
+
+    @jakarta.annotation.security.RolesAllowed("reader")
+    static class SecuredSample {
+
+        @jakarta.annotation.security.RolesAllowed({ "admin", "reader" })
+        void approve() {
+        }
+    }
+
+    @Test
+    void rolesMappingIsPartOfTheContractOnlyWithASecurityModule() {
+        ConfigContract withoutSecurity = ConfigContract.builder().role("admin").build();
+        assertTrue(!withoutSecurity.rolesMappingExpected());
+        ConfigContract withSecurity = ConfigContract.builder().role("admin").role("reader")
+                .platform(ConfigContract.ROLES_MAPPING + "*", "String", false, "group -> roles").build();
+        assertTrue(withSecurity.rolesMappingExpected());
+        ConfigContract back = ConfigContract.fromJson(withSecurity.toJson());
+        assertEquals(withSecurity.roles(), back.roles());
+        assertEquals(withSecurity.toJson(), back.toJson());
     }
 
     @Test

@@ -1,0 +1,104 @@
+# Default content of the AD look-alike (bdi-test-ldap). The shape is what an Active Directory export gives:
+# users with sAMAccountName and memberOf, groups with member, service accounts in their own OU.
+dn: DC=bancaditalia,DC=it
+objectClass: top
+objectClass: domain
+dc: bancaditalia
+
+dn: OU=Users,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: organizationalUnit
+ou: Users
+
+dn: OU=Groups,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+dn: OU=Service Accounts,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: organizationalUnit
+ou: Service Accounts
+
+dn: CN=svc-app,OU=Service Accounts,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: svc-app
+sAMAccountName: svc-app
+userPassword: svc-app-pw
+
+dn: CN=Alice Rossi,OU=Users,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Alice Rossi
+sn: Rossi
+givenName: Alice
+displayName: Alice Rossi
+sAMAccountName: alice
+userPrincipalName: alice@bancaditalia.it
+mail: alice.rossi@bancaditalia.it
+memberOf: CN=APP-ADMINS,OU=Groups,DC=bancaditalia,DC=it
+userPassword: alice-pw
+
+dn: CN=Bob Bianchi,OU=Users,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Bob Bianchi
+sn: Bianchi
+givenName: Bob
+displayName: Bob Bianchi
+sAMAccountName: bob
+userPrincipalName: bob@bancaditalia.it
+memberOf: CN=APP-OPERATORS,OU=Groups,DC=bancaditalia,DC=it
+userPassword: bob-pw
+
+dn: CN=Carol Verdi,OU=Users,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Carol Verdi
+sn: Verdi
+givenName: Carol
+displayName: Carol Verdi
+sAMAccountName: carol
+userPrincipalName: carol@bancaditalia.it
+memberOf: CN=APP-READERS,OU=Groups,DC=bancaditalia,DC=it
+userPassword: carol-pw
+
+dn: CN=Dave Neri,OU=Users,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+cn: Dave Neri
+sn: Neri
+givenName: Dave
+displayName: Dave Neri
+sAMAccountName: dave
+userPrincipalName: dave@bancaditalia.it
+userPassword: dave-pw
+
+dn: CN=APP-ADMINS,OU=Groups,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: group
+cn: APP-ADMINS
+member: CN=Alice Rossi,OU=Users,DC=bancaditalia,DC=it
+
+dn: CN=APP-OPERATORS,OU=Groups,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: group
+cn: APP-OPERATORS
+member: CN=Bob Bianchi,OU=Users,DC=bancaditalia,DC=it
+
+dn: CN=APP-READERS,OU=Groups,DC=bancaditalia,DC=it
+objectClass: top
+objectClass: group
+cn: APP-READERS
+member: CN=Carol Verdi,OU=Users,DC=bancaditalia,DC=it

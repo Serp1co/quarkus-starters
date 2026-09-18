@@ -1,0 +1,28 @@
+# =============================================================================
+# POC security (OIDC/RHBK) - developer-owned configuration (design notes 2.1, 2.2).
+# Only "%dev" / "%test" inner-loop values. The realm URL, the client and its
+# secret are platform keys; so is the realm-roles -> application-roles mapping,
+# rendered per environment (the test values map the roles the RHBK look-alike
+# of bdi-test-oidc puts in its tokens).
+# =============================================================================
+"%dev":
+  desk:
+    unit: "Servizio Autorizzazioni (dev)"
+  quarkus:
+    http:
+      auth:
+        roles-mapping:
+          "app-admins": admin,operator,reader
+          "app-operators": operator,reader
+          "app-readers": reader
+"%test":
+  desk:
+    unit: "Servizio Autorizzazioni (test)"
+    max-pending: 3
+  quarkus:
+    http:
+      auth:
+        roles-mapping:
+          "app-admins": admin,operator,reader
+          "app-operators": operator,reader
+          "app-readers": reader

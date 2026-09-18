@@ -22,13 +22,15 @@ import java.util.stream.Stream;
  * <p>
  * Application half: every {@code @ConfigMapping} interface (keys, defaults, docs, secrets); every messaging
  * channel ({@code @Incoming}, {@code @Outgoing}, {@code @Channel}) combined with the channel key templates
- * of the messaging modules. Platform half: the keys each bdi-config-* module declares.
+ * of the messaging modules; every role named in {@code @RolesAllowed}, so that the platform knows which
+ * identity-provider groups it must map. Platform half: the keys each bdi-config-* module declares.
  */
 public final class ContractExporter {
 
     private static final String INCOMING = "org.eclipse.microprofile.reactive.messaging.Incoming";
     private static final String OUTGOING = "org.eclipse.microprofile.reactive.messaging.Outgoing";
     private static final String CHANNEL = "org.eclipse.microprofile.reactive.messaging.Channel";
+    private static final String ROLES_ALLOWED = "jakarta.annotation.security.RolesAllowed";
 
     private ContractExporter() {
     }
@@ -48,6 +50,7 @@ public final class ContractExporter {
         List<Class<?>> mappings = new ArrayList<>();
         Set<String> incoming = new TreeSet<>();
         Set<String> outgoing = new TreeSet<>();
+        Set<String> roles = new TreeSet<>();
         for (String name : classNames(classes)) {
             Class<?> type;
             try {
@@ -56,6 +59,7 @@ public final class ContractExporter {
                     mappings.add(type);
                 }
                 channels(type, incoming, outgoing);
+                roles(type, roles);
             } catch (Throwable ignored) {
                 // a class that cannot be loaded here (optional dependency, generated code) has no contract to give
             }
@@ -66,6 +70,7 @@ public final class ContractExporter {
         for (Class<?> mapping : mappings) {
             builder.mapping(mapping);
         }
+        roles.forEach(builder::role);
         for (PlatformDescriptor descriptor : PlatformDescriptor.load(loader)) {
             descriptor.keys().forEach(builder::addIfAbsent);
             for (String channel : incoming) {
@@ -112,6 +117,31 @@ public final class ContractExporter {
                     }
                 }
             }
+        }
+    }
+
+    /** Every role named by {@code @RolesAllowed} on the class or its methods. */
+    private static void roles(Class<?> type, Set<String> roles) {
+        for (Annotation annotation : type.getAnnotations()) {
+            if (ROLES_ALLOWED.equals(annotation.annotationType().getName())) {
+                roles.addAll(values(annotation));
+            }
+        }
+        for (Method method : type.getDeclaredMethods()) {
+            for (Annotation annotation : method.getAnnotations()) {
+                if (ROLES_ALLOWED.equals(annotation.annotationType().getName())) {
+                    roles.addAll(values(annotation));
+                }
+            }
+        }
+    }
+
+    private static List<String> values(Annotation annotation) {
+        try {
+            Object value = annotation.annotationType().getMethod("value").invoke(annotation);
+            return value instanceof String[] array ? List.of(array) : List.of(String.valueOf(value));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
         }
     }
 

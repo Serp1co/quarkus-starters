@@ -120,6 +120,25 @@ class ConfigContractTest {
     }
 
     @Test
+    void unmappedRolesAreMissingWhenASecurityModuleExpectsAMapping() {
+        SmallRyeConfig config = new SmallRyeConfigBuilder()
+                .withSources(new PropertiesConfigSource(
+                        Map.of("quarkus.http.auth.roles-mapping.\"APP-ADMINS\"", "admin,reader",
+                                "quarkus.http.auth.roles-mapping.APP-READERS", "reader"), "platform", 300))
+                .build();
+        ConfigContract contract = ConfigContract.builder()
+                .role("admin").role("operator").role("reader")
+                .platform(ConfigContract.ROLES_MAPPING + "*", "String", false, "group -> roles")
+                .build();
+        Map<String, List<String>> mappings = contract.roleMappings(config);
+        assertEquals(List.of("APP-ADMINS"), mappings.get("admin"));
+        assertEquals(List.of("APP-ADMINS", "APP-READERS"), mappings.get("reader"));
+        assertEquals(List.of(), mappings.get("operator"));
+        assertEquals(List.of("role:operator"), contract.missing(config));
+        assertEquals(List.of(), ConfigContract.builder().role("operator").build().missing(config), "no security module: nothing expected");
+    }
+
+    @Test
     void rendersJsonAndMarkdown() {
         ConfigContract contract = ConfigContract.builder()
                 .platform("quarkus.http.port", "int", "8080", "HTTP \"port\"")

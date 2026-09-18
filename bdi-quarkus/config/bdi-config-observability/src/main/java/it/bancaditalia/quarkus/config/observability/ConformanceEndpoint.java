@@ -52,6 +52,9 @@ public class ConformanceEndpoint {
                     "profiles", ConfigUtils.getProfiles()));
             body.put("missing", contract.missing(config));
             body.put("config", contract.echo(config));
+            if (!contract.roles().isEmpty()) {
+                body.put("roles", contract.roleMappings(config)); // role -> groups the platform mapped to it
+            }
             try {
                 context.response()
                         .putHeader("Content-Type", "application/json")

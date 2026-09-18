@@ -276,6 +276,9 @@ def bdi_unflatten(flat):
     return _unflatten(flat)
 
 
+ROLES_MAPPING = "quarkus.http.auth.roles-mapping."
+
+
 def bdi_check(config, secrets, contract):
     """Validate rendered config + secrets against the artifact's contract (missing, misplaced, unknown)."""
     flat_config, flat_secrets = _flatten(config, stringify=True), _flatten(secrets, stringify=True)
@@ -293,6 +296,15 @@ def bdi_check(config, secrets, contract):
     known = [k["name"] for k in keys]
     patterns = [re.compile("^" + re.escape(k).replace(r"\*", '("[^"]*"|[^.]+)') + "$") for k in known if "*" in k]
     unknown = [n for n in flat_config if n not in known and not any(p.match(n) for p in patterns)]
+    # roles: when a security module is in use (roles-mapping.* in the contract), every role the code names must
+    # be granted by at least one identity-provider group of this environment
+    roles = contract.get("roles", [])
+    if roles and ROLES_MAPPING + "*" in known:
+        granted = set()
+        for name, value in flat_config.items():
+            if name.startswith(ROLES_MAPPING):
+                granted.update(r.strip() for r in str(value).split(","))
+        missing.extend(f"role:{r}" for r in roles if r not in granted)
     return {"missing": missing, "misplaced": misplaced, "unknown": unknown}
 
 

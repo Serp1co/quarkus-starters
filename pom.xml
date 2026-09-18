@@ -24,6 +24,8 @@
     <module>pocs/messaging-amqp</module>
     <module>pocs/messaging-kafka</module>
     <module>pocs/data-hibernate-panache</module>
+    <module>pocs/security-ldap</module>
+    <module>pocs/security-oidc</module>
   </modules>
 
   <properties>
@@ -187,6 +189,41 @@
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-jpa-audit</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-security</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-security-ldap</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-security-ldap</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-test-ldap</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-security-oidc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-security-oidc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-test-oidc</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

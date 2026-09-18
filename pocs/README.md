@@ -15,7 +15,8 @@ measured numbers. Every POC builds from the root parent POM, so all of them shar
 | Messaging | Reactive Messaging vs JMS over AMQP 1.0 on AMQ Broker; outbox, idempotent consumer, redelivery and DLQ (4.3) | [`messaging-amqp`](messaging-amqp/) | done; IBM MQ variation planned |
 | Kafka | keyed records, ordering per partition, throttled commits, dead-letter topic, idempotent consumer (4.4) | [`messaging-kafka`](messaging-kafka/) | done; Streams and schema registry called out |
 | Data | Hibernate ORM and Panache: the EAP DAO carried over next to the Panache repository, sequences and batching, optimistic locking, second-level cache, Envers history | [`data-hibernate-panache`](data-hibernate-panache/) | done |
-| Security | AD/LDAP inbound first, then OIDC/RHBK; token propagation outbound, TLS registry, audit events (4.5) | `security-ldap`, `security-oidc` | next |
+| Security (AD/LDAP) | the legacy bridge: Elytron LDAP realm shaped for AD, Basic auth, `@RolesAllowed` on application roles, group-to-role mapping as a platform key, audit log, AD look-alike for tests (4.5) | [`security-ldap`](security-ldap/) | done |
+| Security (OIDC/RHBK) | the same application on bearer tokens from the Red Hat build of Keycloak; realm roles mapped like AD groups; RHBK look-alike for tests (4.5) | [`security-oidc`](security-oidc/) | done; outbound propagation, web-app flow and multi-tenancy planned (cookbook 12) |
 
 Per-POC deliverable checklist (design note 4.6):
 

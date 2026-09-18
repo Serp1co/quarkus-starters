@@ -7,7 +7,7 @@ validates the rendered files against and what the conformance endpoint resolves 
 
 | Piece | What it does |
 |---|---|
-| `ContractExporter` | Scans the compiled classes for `@ConfigMapping` interfaces (keys, defaults, `@Doc`, `@Secret`) and messaging channels (`@Incoming`, `@Outgoing`, `@Channel`), merges the `PlatformDescriptor` of every `bdi-config-*` module on the classpath, writes the JSON. Bound in the root POM's `bdi-application` profile (exec-maven-plugin, phase `process-classes`), which activates by itself on any module that ships `src/main/resources/application.yaml`: applications get it, libraries never do, nobody declares it. `-Dbdi.contract.skip=true` is the escape hatch. |
+| `ContractExporter` | Scans the compiled classes for `@ConfigMapping` interfaces (keys, defaults, `@Doc`, `@Secret`), messaging channels (`@Incoming`, `@Outgoing`, `@Channel`) and the roles named in `@RolesAllowed`, merges the `PlatformDescriptor` of every `bdi-config-*` module on the classpath, writes the JSON. Bound in the root POM's `bdi-application` profile (exec-maven-plugin, phase `process-classes`), which activates by itself on any module that ships `src/main/resources/application.yaml`: applications get it, libraries never do, nobody declares it. `-Dbdi.contract.skip=true` is the escape hatch. |
 | `PlatformDescriptor` | What a config module declares in its `META-INF/bdi-contract-platform.json`: the Quarkus keys of the extensions it configures, and key templates for the channels an application declares (`{channel}`, `{application}` substituted). Written once per module by the platform team, never per application. |
 | `ConfigContract` | The keys, JSON in and out, and the runtime echo (`echo(config)`: value, source and ordinal of every key, secrets masked; `missing(config)`). |
 | `@Doc`, `@Secret` | Optional annotations on `@ConfigMapping` methods: the description ops read, and the vault marker. |
@@ -32,3 +32,9 @@ validates the rendered files against and what the conformance endpoint resolves 
 
 `required` and `secret` are what the pre-deploy check needs: every required, non-secret key present in the
 rendered file; every secret key from the vault, never from inventory.
+
+The contract also carries `"roles": ["admin", "operator", "reader"]`, the application roles the code names in
+`@RolesAllowed`. When a security module is in use (its descriptor declares `quarkus.http.auth.roles-mapping.*`),
+the platform must grant every role through at least one identity-provider group of the environment
+(`quarkus.http.auth.roles-mapping."<AD group or realm role>"=role1,role2`): `missing()` reports `role:<name>`
+otherwise, both in the Ansible pre-deploy check and on `/q/platform`, which also echoes `roles: {role: [groups]}`.

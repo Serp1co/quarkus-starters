@@ -16,7 +16,7 @@ has been run on at least stage 1 of the target ladder, so that every claim in it
 | 9 | Kafka: messaging vs Streams vs client; schema registry | Kafka POC | draft in the [messaging-kafka README](../../pocs/messaging-kafka/README.md) |
 | 10 | SOAP with Quarkus CXF | POC C | planned |
 | 11 | Spring compat vs rewrite | POC D | planned |
-| 12 | Security: OIDC/RHBK, Elytron LDAP for legacy, mTLS via TLS registry, path policies, audit events | Security POC | planned |
+| 12 | Security: Elytron LDAP for legacy, OIDC/RHBK, mTLS via TLS registry, path policies, audit events | Security POCs | draft in the [security-ldap](../../pocs/security-ldap/README.md) and [security-oidc](../../pocs/security-oidc/README.md) READMEs; outbound and mTLS pending |
 | 13 | Observability: JSON logs to SIEM, Micrometer/Prometheus, OpenTelemetry tracing | POC A (JSON logs, health) then all | planned |
 | 14 | AAP deploy and rollback on VMs (systemd) | POC A stage 1, [`ansible/`](../../ansible/README.md) | draft: the role and playbooks exist and run in the sandbox; host provisioning and a real systemd run pending |
 | 15 | Container on VM: Podman + Quadlet | POC A stage 2 | planned |

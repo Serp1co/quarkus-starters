@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,10 +59,15 @@ public final class ConfigContract {
 
     public static final String MASK = "******";
 
-    private final List<Key> keys;
+    /** Prefix of the Quarkus keys that map an identity-provider group to application roles. */
+    public static final String ROLES_MAPPING = "quarkus.http.auth.roles-mapping.";
 
-    private ConfigContract(List<Key> keys) {
+    private final List<Key> keys;
+    private final List<String> roles;
+
+    private ConfigContract(List<Key> keys, List<String> roles) {
         this.keys = List.copyOf(keys);
+        this.roles = List.copyOf(roles);
     }
 
     public static Builder builder() {
@@ -78,6 +85,9 @@ public final class ConfigContract {
                         k.path("secret").asBoolean(), Owner.valueOf(k.path("owner").asText().toUpperCase(Locale.ROOT)),
                         k.path("doc").asText("")));
             }
+            for (JsonNode r : root.path("roles")) {
+                builder.role(r.asText());
+            }
             return builder.build();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -90,6 +100,43 @@ public final class ConfigContract {
 
     public Optional<Key> key(String name) {
         return keys.stream().filter(k -> k.name().equals(name)).findFirst();
+    }
+
+    /** The roles the application's code requires ({@code @RolesAllowed}), sorted. */
+    public List<String> roles() {
+        return roles;
+    }
+
+    /** Whether a security module in use expects the platform to map identity-provider groups to these roles. */
+    public boolean rolesMappingExpected() {
+        return !roles.isEmpty() && keys.stream().anyMatch(k -> k.name().equals(ROLES_MAPPING + "*"));
+    }
+
+    /**
+     * For every role of the contract, the groups the running configuration maps to it (empty list: unmapped).
+     * {@code quarkus.http.auth.roles-mapping.<group>=role1,role2} is the Quarkus key the platform renders.
+     */
+    public Map<String, List<String>> roleMappings(Config config) {
+        Map<String, List<String>> out = new LinkedHashMap<>();
+        roles.forEach(r -> out.put(r, new ArrayList<>()));
+        for (String property : config.getPropertyNames()) {
+            if (!property.startsWith(ROLES_MAPPING)) {
+                continue;
+            }
+            String group = property.substring(ROLES_MAPPING.length()).replace("\"", "");
+            ConfigValue value = config.getConfigValue(property);
+            if (value == null || value.getValue() == null) {
+                continue;
+            }
+            for (String role : value.getValue().split(",")) {
+                List<String> groups = out.get(role.trim());
+                if (groups != null && !groups.contains(group)) {
+                    groups.add(group);
+                }
+            }
+        }
+        out.values().forEach(java.util.Collections::sort); // property names come in no particular order
+        return out;
     }
 
     /** Resolves every concrete key against the running configuration. Secret values are masked. */
@@ -110,9 +157,20 @@ public final class ConfigContract {
         return out;
     }
 
-    /** Names of the required keys the given configuration does not provide. */
+    /**
+     * Names of the required keys the given configuration does not provide, and, when a security module expects a
+     * roles mapping, {@code role:<name>} for every role no identity-provider group is mapped to.
+     */
     public List<String> missing(Config config) {
-        return echo(config).stream().filter(e -> e.required() && !e.present()).map(Echo::key).toList();
+        List<String> out = new ArrayList<>(echo(config).stream().filter(e -> e.required() && !e.present()).map(Echo::key).toList());
+        if (rolesMappingExpected()) {
+            roleMappings(config).forEach((role, groups) -> {
+                if (groups.isEmpty()) {
+                    out.add("role:" + role);
+                }
+            });
+        }
+        return out;
     }
 
     public String toJson() {
@@ -128,7 +186,11 @@ public final class ConfigContract {
                     .append(", \"doc\": ").append(Json.str(k.doc()))
                     .append('}').append(i < keys.size() - 1 ? "," : "").append('\n');
         }
-        return sb.append("  ]\n}\n").toString();
+        sb.append("  ],\n  \"roles\": [");
+        for (int i = 0; i < roles.size(); i++) {
+            sb.append(Json.str(roles.get(i))).append(i < roles.size() - 1 ? ", " : "");
+        }
+        return sb.append("]\n}\n").toString();
     }
 
     public String toMarkdownTable() {
@@ -148,6 +210,7 @@ public final class ConfigContract {
     public static final class Builder {
 
         private final List<Key> keys = new ArrayList<>();
+        private final List<String> roles = new ArrayList<>();
 
         /** Adds every key declared by a {@code @ConfigMapping} interface. */
         public Builder mapping(Class<?> configMapping) {
@@ -174,6 +237,13 @@ public final class ConfigContract {
         }
 
         /** Adds a key unless one with the same name exists (two modules may describe the same Quarkus key). */
+        public Builder role(String role) {
+            if (role != null && !role.isBlank() && !roles.contains(role.trim())) {
+                roles.add(role.trim());
+            }
+            return this;
+        }
+
         public Builder addIfAbsent(Key key) {
             if (keys.stream().noneMatch(k -> k.name().equals(key.name()))) {
                 keys.add(key);
@@ -188,7 +258,9 @@ public final class ConfigContract {
                     throw new IllegalStateException("Duplicate contract key: " + key.name());
                 }
             }
-            return new ConfigContract(keys);
+            List<String> sortedRoles = new ArrayList<>(roles);
+            java.util.Collections.sort(sortedRoles);
+            return new ConfigContract(keys, sortedRoles);
         }
     }
 }

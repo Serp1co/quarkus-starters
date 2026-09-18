@@ -13,7 +13,7 @@ lost; what changes is what the fragments render into.
 | `${fromvault.app.PASSWORD}` resolved by the vault task | the same placeholder syntax; the role routes every placeholder to `secrets.yaml` (0600) and refuses a secret written in clear text |
 | rendered `standalone.xml`, developers bind to JNDI names | rendered `application-<env>.yaml`, developers bind to logical config keys |
 | deploy the EAR through the management CLI | fetch the versioned zip from Nexus, release/`current` layout, hardened systemd unit, restart gated on `/q/health/ready` |
-| nothing checks the configuration before deploying | the rendered files are validated against `META-INF/config-contract.json` of the exact artifact, before the host is touched |
+| nothing checks the configuration before deploying | the rendered files are validated against `META-INF/config-contract.json` of the exact artifact, before the host is touched: required keys present, secrets only in the vault-fed file, every `@RolesAllowed` role granted by some group of the environment |
 | nothing checks the deployment after | `/q/platform` reports version, profile and the source of every key |
 
 The full catalogue of EAP fragment files and their parallel is in [`fragments/README.md`](fragments/README.md),

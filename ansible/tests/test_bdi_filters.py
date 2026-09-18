@@ -98,3 +98,13 @@ def test_contract_check():
     assert result["missing"] == ["ledger.transfer.max-amount"]
     assert result["misplaced"] == ["quarkus.datasource.password"]
     assert result["unknown"] == ["quarkus.http.port"]
+
+def test_contract_check_reports_unmapped_roles():
+    contract = {"keys": [{"name": "quarkus.http.auth.roles-mapping.*", "required": False, "secret": False}],
+                "roles": ["admin", "operator", "reader"]}
+    rendered = {"quarkus": {"http": {"auth": {"roles-mapping": {"APP-ADMINS": "admin,reader", "APP-READERS": "reader"}}}}}
+    result = bdi.bdi_check(rendered, {}, contract)
+    assert result["missing"] == ["role:operator"]
+    assert result["unknown"] == []
+    # no security module in the contract: roles are not checked
+    assert bdi.bdi_check(rendered, {}, {"keys": [], "roles": ["admin"]})["missing"] == []

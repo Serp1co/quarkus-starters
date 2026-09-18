@@ -1,0 +1,21 @@
+# Standardized defaults of bdi-config-security-oidc (ordinal 100): quarkus-oidc shaped for the Red Hat build of
+# Keycloak. The realm URL, the client id and its secret are contract keys rendered by the platform.
+quarkus:
+  oidc:
+    application-type: service         # APIs verify bearer tokens; a web-app (code flow, cookies) is a per-application override
+    roles:
+      role-claim-path: realm_access/roles   # RHBK realm roles; the platform maps them to application roles like AD groups
+    token:
+      refresh-expired: false          # bearer tokens are not refreshed by the API
+    discovery-enabled: true
+    connection-retry-count: 3         # the realm may come up after the application on a cold start
+    connection-delay: 2S
+    tls:
+      verification: required          # the RHBK certificate chain is in the platform truststore
+    authentication:
+      user-info-required: false       # roles come from the token; no round trip per request
+"%dev":
+  quarkus:
+    keycloak:
+      devservices:
+        enabled: true                 # dev mode: a Keycloak container with the dev realm, unless auth-server-url is set

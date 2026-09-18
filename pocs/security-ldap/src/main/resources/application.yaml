@@ -1,0 +1,28 @@
+# =============================================================================
+# POC security (AD/LDAP) - developer-owned configuration (design notes 2.1, 2.2).
+# Only "%dev" / "%test" inner-loop values. The directory URL, the service
+# account and the base DNs are platform keys; so is the group -> roles mapping,
+# which the platform renders per environment (the test values below map the
+# groups of the AD look-alike of bdi-test-ldap).
+# =============================================================================
+"%dev":
+  desk:
+    unit: "Servizio Autorizzazioni (dev)"
+  quarkus:
+    http:
+      auth:
+        roles-mapping:
+          "APP-ADMINS": admin,operator,reader
+          "APP-OPERATORS": operator,reader
+          "APP-READERS": reader
+"%test":
+  desk:
+    unit: "Servizio Autorizzazioni (test)"
+    max-pending: 3
+  quarkus:
+    http:
+      auth:
+        roles-mapping:
+          "APP-ADMINS": admin,operator,reader
+          "APP-OPERATORS": operator,reader
+          "APP-READERS": reader

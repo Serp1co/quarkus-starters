@@ -1,0 +1,27 @@
+# Standardized defaults of bdi-config-security-ldap (ordinal 100): the Elytron LDAP realm shaped for Active
+# Directory. The platform renders the URL, the service account and the base DNs (contract keys); nothing here
+# is environment-specific.
+quarkus:
+  http:
+    auth:
+      basic: true                       # the legacy bridge of design note 4.5: Basic over TLS, as the EAP LDAP security domain did
+  security:
+    ldap:
+      enabled: true
+      direct-verification: true         # bind as the user: AD never returns a password attribute
+      dir-context:
+        referral-mode: ignore           # AD returns referrals for the other domains of the forest; a global-catalog URL avoids them
+        connect-timeout: 3S
+        read-timeout: 5S
+      cache:
+        enabled: true                   # one directory round trip per user per minute, not per request
+        max-age: 60S
+        size: 1000
+      identity-mapping:
+        rdn-identifier: sAMAccountName  # the login name; the user DN (CN=Full Name,...) is found by search, never composed
+        search-recursive: true          # users live in nested OUs
+        attribute-mappings:
+          groups:
+            from: cn                    # the group's CN becomes a role; the platform maps it to application roles
+            to: groups
+            filter: "(&(objectClass=group)(member={1}))"   # {1} = the user's DN. Nested groups on real AD: (member:1.2.840.113556.1.4.1941:={1})
