@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>bdi-quarkus</artifactId>
+  <packaging>pom</packaging>
+  <name>bdi-quarkus</name>
+  <description>
+    The bank-owned layer of design note 2.3: the BOM, the opinionated starters developers depend on instead
+    of naming Quarkus extensions, and the config modules that configure those extensions in a standardized way.
+  </description>
+
+  <modules>
+    <module>bom</module>
+    <module>config/bdi-config-core</module>
+    <module>config/bdi-config-rest</module>
+    <module>config/bdi-config-jpa</module>
+    <module>config/bdi-config-observability</module>
+    <module>starters/bdi-rest-jackson</module>
+    <module>starters/bdi-jpa-postgresql</module>
+    <module>starters/bdi-jpa-oracle</module>
+    <module>starters/bdi-jpa-db2</module>
+    <module>starters/bdi-observability</module>
+    <module>starters/bdi-test</module>
+  </modules>
+</project>

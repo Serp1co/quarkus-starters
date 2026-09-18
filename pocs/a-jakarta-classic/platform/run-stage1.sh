@@ -7,7 +7,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 APP="$HERE/../target/quarkus-app/quarkus-run.jar"
 [ -f "$APP" ] || { echo "Build the artifact first: ./mvnw package" >&2; exit 1; }
 
-export QUARKUS_CONFIG_LOCATIONS="$HERE/config/,$HERE/secrets/secrets.properties"
 export QUARKUS_PROFILE="${QUARKUS_PROFILE:-uat}"
+export QUARKUS_CONFIG_LOCATIONS="$HERE/config/application-${QUARKUS_PROFILE}.yaml,$HERE/secrets/secrets.yaml"
 
 exec java ${JAVA_OPTS:-} -jar "$APP"

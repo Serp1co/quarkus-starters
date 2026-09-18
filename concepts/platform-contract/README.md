@@ -8,21 +8,20 @@ application alike. Candidate content for a `bdi-quarkus-*` internal extension (�
 |---|---|
 | `ConfigContract` | The list of keys an application may or must receive. Built from the application's `@ConfigMapping` interfaces (owner `application`) plus the Quarkus keys of the extensions it uses (owner `platform`). Exports JSON (`toJson()`) for AAP and a Markdown table (`toMarkdownTable()`) for READMEs. Resolves itself against a live `Config` (`echo(config)`, `missing(config)`): which source served each key, with secrets masked. |
 | `@Doc`, `@Secret` | Optional annotations on `@ConfigMapping` methods: a description for the ops audience, and the vault marker (never rendered from inventory, never echoed). |
-| `ArtifactConfigLint` | Fails a build whose `application.properties` carries `%prod.` or any environment profile key. Only `%dev` and `%test` (the inner loop) are allowed in the artifact. |
+| `ContractContributor` | A piece of the contract: the application contributes its `@ConfigMapping` interfaces, each `bdi-config-*` module the platform keys of what it configures. `bdi-config-observability` assembles the beans into the one `ConfigContract`. |
+| `ArtifactConfigLint` | Fails a build whose `application.yaml` (or `.properties`) carries a `"%prod":` section or any environment profile. Only `%dev` and `%test` (the inner loop) are allowed in the artifact. |
 
 ## How a POC uses it
 
 1. Declare what the application needs in a `@ConfigMapping` interface (defaults where a default is
    honest, no default where the environment must decide).
-2. Define the contract once, `ConfigContract.builder().mapping(MyConfig.class).platform(...).build()`,
-   listing the Quarkus keys of the extensions in use as platform keys.
-3. Keep the export in sync with a test that compares `toJson()` with the versioned
-   `src/main/resources/META-INF/config-contract.json` (see POC A's `ConfigContractTest`). The file ships
-   inside the artifact, so AAP validates the rendered properties against exactly the artifact it deploys.
-4. Expose `echo(config)` on the management port (POC A's `ConformanceEndpoint`, `GET /q/platform`) so the
-   post-deploy conformance check of §3 reads version, active profile and config sources from the
-   running instance.
-5. Add the one-line lint test (`ArtifactConfigLint.assertNoBannedProfileKeys(...)`).
+2. Contribute it with a `ContractContributor` bean (`builder.mapping(MyConfig.class)`); the platform keys
+   come from the `bdi-config-*` modules of the starters in use, and `bdi-observability` assembles and
+   exposes the whole on `GET /q/platform` (the post-deploy conformance check of §3).
+3. Keep the export in sync with a `@QuarkusTest` that compares the injected contract's `toJson()` with the
+   versioned `src/main/resources/META-INF/config-contract.json` (POC A's `ConfigContractTest`). The file
+   ships inside the artifact, so AAP validates the rendered file against exactly the artifact it deploys.
+4. Add the one-line lint test (`ArtifactConfigLint.assertNoBannedProfileKeys(...)`).
 
 ## Mapping rules covered
 

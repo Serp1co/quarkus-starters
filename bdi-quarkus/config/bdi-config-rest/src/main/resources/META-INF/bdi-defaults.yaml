@@ -1,0 +1,9 @@
+# Standardized defaults of bdi-config-rest (ordinal 100: below application.yaml and the platform).
+quarkus:
+  http:
+    enable-compression: true
+  jackson:
+    timezone: UTC
+  smallrye-openapi:
+    management:
+      enabled: false   # the OpenAPI document is for API consumers: keep it on the API port, not on the management port

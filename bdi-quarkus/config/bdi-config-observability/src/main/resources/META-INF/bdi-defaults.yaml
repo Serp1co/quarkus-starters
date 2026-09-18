@@ -1,0 +1,24 @@
+# Standardized defaults of bdi-config-observability (ordinal 100: below application.yaml and the platform).
+quarkus:
+  management:
+    enabled: true        # health, metrics and the conformance endpoint on a port the platform firewalls to ops and the LB
+  log:
+    level: INFO
+    console:
+      json:
+        enabled: true    # environments: JSON to stdout, captured by journald / podman / OpenShift Logging
+    category:
+      "it.bancaditalia":
+        level: INFO
+"%dev":
+  quarkus:
+    log:
+      console:
+        json:
+          enabled: false
+"%test":
+  quarkus:
+    log:
+      console:
+        json:
+          enabled: false

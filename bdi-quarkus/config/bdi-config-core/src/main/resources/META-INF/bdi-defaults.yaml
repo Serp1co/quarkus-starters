@@ -1,0 +1,4 @@
+# Standardized defaults of bdi-config-core (ordinal 100: below application.yaml and the platform).
+quarkus:
+  banner:
+    enabled: false

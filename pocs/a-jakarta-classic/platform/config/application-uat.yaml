@@ -1,0 +1,20 @@
+# ---------------------------------------------------------------------------
+# Rendered by the platform for env=uat, from group_vars/uat/poc-a-jakarta-classic: the whole configuration
+# of this environment in one file, the "application-<env>" file of the design notes.
+# On a VM it lives at /etc/bdi/poc-a-jakarta-classic/application-uat.yaml, owned by the service user;
+# on Podman it is a bind mount, on OpenShift a ConfigMap. The application never ships it.
+# Keys and their meaning: META-INF/config-contract.json in the artifact (also README.md, "Config contract").
+# Amounts are quoted: an unquoted 1500.00 is a YAML float and reaches the application as "1500.0".
+# ---------------------------------------------------------------------------
+quarkus:
+  datasource:
+    jdbc:
+      url: jdbc:postgresql://127.0.0.1:5432/poc   # the bank's database, not a Dev Services container
+      max-size: 20
+    username: poc
+ledger:
+  currency: EUR
+  transfer:
+    max-amount: "1500.00"
+    blocked-ibans:
+      - IT66X0100503200000012345678

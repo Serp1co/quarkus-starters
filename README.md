@@ -6,7 +6,7 @@ applications running on JBoss EAP move to the **Red Hat build of Quarkus (RHBQ)*
 (Ansible Automation Platform, AAP) owning configuration and deployment.
 
 The framing for the ops audience, from the design notes: *today ops own `standalone.xml` and developers
-bind to JNDI names; tomorrow ops own the rendered `application-<env>.properties` and developers bind to
+bind to JNDI names; tomorrow ops own the rendered `application-<env>.yaml` and developers bind to
 logical config keys.* Everything in this repository hangs off that sentence.
 
 Source of truth: [docs/design/2026-09-17-banca-italia-quarkus-poc-design.md](docs/design/2026-09-17-banca-italia-quarkus-poc-design.md).
@@ -17,10 +17,11 @@ Section numbers quoted below (§2.1, §4.6, ...) refer to it.
 | Path | Role |
 |---|---|
 | [`pom.xml`](pom.xml) | Parent POM and aggregator. Plays the *internal parent POM* of §2.3: pins every module to one RHBQ stream and centralises build conventions. |
+| [`bdi-quarkus/`](bdi-quarkus/) | The bank-owned layer of §2.3: the BOM, the opinionated **starters** developers depend on instead of Quarkus extensions (`bdi-rest-jackson`, `bdi-jpa-postgresql`/`-oracle`/`-db2`, `bdi-observability`, `bdi-test`) and the **config modules** that configure them in a standardized way. |
 | [`concepts/`](concepts/) | Platform concepts shared by the POCs, as code. [`platform-contract`](concepts/platform-contract/): config contract export, config-source echo, artifact lint (§2.1, §2.2). |
 | [`pocs/`](pocs/) | One POC per migration class (§4). Catalog and status in [pocs/README.md](pocs/README.md). |
 | [`docs/cookbooks/`](docs/cookbooks/) | One page per cookbook (§6). Index and status in [docs/cookbooks/README.md](docs/cookbooks/README.md). |
-| [`docs/design/`](docs/design/) | Design notes. |
+| [`docs/design/`](docs/design/) | Design notes and the [addendum of 18 September](docs/design/2026-09-18-addendum-variations-yaml-starters.md) (variations, YAML, starters). |
 | [`.github/workflows/build.yml`](.github/workflows/build.yml) | CI: builds and tests every module against RHBQ. |
 
 ## Platform stream
@@ -66,14 +67,22 @@ export QUARKUS_DATASOURCE_USERNAME=poc QUARKUS_DATASOURCE_PASSWORD=poc
 
 ## Conventions
 
+- **Variations, not choices.** Banca d'Italia runs several stacks side by side (PostgreSQL, Oracle, Db2;
+  AMQ Broker, IBM MQ, Kafka; RHBK, AD/LDAP; CyberArk, HashiCorp). Every capability is a family of starters
+  sharing one config module; an application picks the member its estate needs.
+- **Starters, not extensions (§2.3).** Applications depend on `bdi-*` starters from `bdi-quarkus/`; the
+  config modules behind them inject standardized defaults (ordinal 100, always overridable) and their
+  platform keys into the config contract.
+- **YAML, never properties.** `application.yaml` in the artifact, `application-<env>.yaml` rendered by the
+  platform, YAML secrets files, YAML defaults in the config modules. Quote amounts (`"1500.00"`).
 - **Build once, configure per environment (§2.1).** Packaging is fast-jar for VMs and the UBI OpenJDK
-  image for containers; the same artifact goes to every stage. `%prod.` keys (or any environment name) are
-  banned from `application.properties`; `ArtifactConfigLint` fails the build on them. Only `%dev`/`%test`
-  inner-loop keys and build-time choices live in the artifact.
-- **Config entry points (§2.2).** Rendered files at a fixed path through `QUARKUS_CONFIG_LOCATIONS`,
-  the active profile through `QUARKUS_PROFILE`, environment variables only for per-instance values. What
-  the platform must render is declared in `@ConfigMapping` interfaces and exported as
-  `META-INF/config-contract.json` by each POC.
+  image for containers; the same artifact goes to every stage. A `"%prod":` section (or any environment
+  name) is banned from `application.yaml`; `ArtifactConfigLint` fails the build on it. Only `%dev`/`%test`
+  inner-loop values live in the artifact.
+- **Config entry points (§2.2).** One fully rendered `application-<env>.yaml` plus the secrets file at a
+  fixed path, both named in `QUARKUS_CONFIG_LOCATIONS`; the active profile through `QUARKUS_PROFILE`;
+  environment variables only for per-instance values. What the platform must render is declared in
+  `@ConfigMapping` interfaces and exported as `META-INF/config-contract.json` by each application.
 - **No unit files, no environment in images (§3).** Application repositories never contain a systemd unit;
   the Dockerfile carries no configuration. Both belong to the AAP roles.
 - **Support tags (§7).** Every extension a POC uses is tagged *RHBQ-supported* or *Quarkiverse* in its
@@ -86,7 +95,8 @@ export QUARKUS_DATASOURCE_USERNAME=poc QUARKUS_DATASOURCE_PASSWORD=poc
 | Item | State |
 |---|---|
 | Container project (parent POM, wrapper, CI, layout) | done |
+| `bdi-quarkus`: BOM, 6 starters, 4 config modules | done; messaging, security, secrets, SOAP and Spring variations planned with their POCs |
 | Concept `platform-contract` | done, unit-tested |
-| POC A, Jakarta classic | first cut: code, tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
+| POC A, Jakarta classic | on the starters, YAML only, zero non-profile config lines; tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
 | Cookbook 5 (JAX-RS / CDI / JPA from EAP) | draft |
 | Other POCs and cookbooks | planned, see the indexes |

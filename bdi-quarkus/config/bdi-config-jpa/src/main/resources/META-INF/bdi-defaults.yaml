@@ -1,0 +1,26 @@
+# Standardized defaults of bdi-config-jpa (ordinal 100: below application.yaml and the platform).
+quarkus:
+  datasource:
+    jdbc:
+      min-size: 2
+      max-size: 20
+      acquisition-timeout: 5S
+  transaction-manager:
+    default-transaction-timeout: 120S
+  hibernate-orm:
+    log:
+      sql: false
+    schema-management:
+      strategy: none        # environments: the schema is owned by the DBA (or Flyway, cookbook 4)
+"%dev":
+  quarkus:
+    hibernate-orm:
+      schema-management:
+        strategy: drop-and-create
+      log:
+        sql: true
+"%test":
+  quarkus:
+    hibernate-orm:
+      schema-management:
+        strategy: drop-and-create

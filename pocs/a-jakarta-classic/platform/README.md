@@ -7,8 +7,8 @@ standing in for what AAP renders.
 
 | Platform concern (design note) | On a VM | In this directory |
 |---|---|---|
-| Rendered configuration (§2.2, §5) | `/etc/bdi/poc-a-jakarta-classic/application.properties` and `application-<env>.properties`, rendered from `group_vars/<env>/poc-a-jakarta-classic` | [`config/application.properties`](config/application.properties), [`config/application-uat.properties`](config/application-uat.properties) |
-| Secrets (§2.2, §5) | `/etc/bdi/poc-a-jakarta-classic/secrets/secrets.properties`, 0600, written by the vault task (or a systemd credential) | [`secrets/secrets.properties`](secrets/secrets.properties) (sandbox database credentials) |
+| Rendered configuration (§2.2, §5) | `/etc/bdi/poc-a-jakarta-classic/application-<env>.yaml`, one fully rendered file per environment, from `group_vars/<env>/poc-a-jakarta-classic` | [`config/application-uat.yaml`](config/application-uat.yaml) |
+| Secrets (§2.2, §5) | `/etc/bdi/poc-a-jakarta-classic/secrets/secrets.yaml`, 0600, written by the vault task (CyberArk or HashiCorp, or a systemd credential) | [`secrets/secrets.yaml`](secrets/secrets.yaml) (sandbox database credentials) |
 | Entry points (§2.2) | The unit sets `QUARKUS_CONFIG_LOCATIONS` and `QUARKUS_PROFILE`; nothing else is application-specific | [`run-stage1.sh`](run-stage1.sh) sets the same two variables |
 | Runtime (§3, stage 1) | Red Hat build of OpenJDK 21, service user, directories, SELinux, firewalld (8080 to the LB, 9000 to ops), journald, hardened unit, standardized JVM flags | your JDK 21, `JAVA_OPTS` |
 | Rolling update gate (§3) | `/q/health/ready` on port 9000, one host at a time behind the LB | `curl :9000/q/health/ready` |
@@ -55,11 +55,12 @@ derives from the entities (cookbook 4 will bring Flyway for the classes where th
   "application": { "name": "poc-a-jakarta-classic", "version": "1.0.0-SNAPSHOT", "profiles": ["uat"] },
   "missing": [],
   "config": [
-    { "key": "ledger.currency",              "value": "EUR",      "source": "DefaultValuesConfigSource" },
-    { "key": "ledger.transfer.max-amount",   "value": "1500.00",  "source": "PropertiesConfigSource[source=file:.../config/application-uat.properties]" },
-    { "key": "ledger.transfer.blocked-ibans","value": "IT66X0100503200000012345678", "source": "...application-uat.properties]" },
-    { "key": "quarkus.datasource.jdbc.url",  "value": "jdbc:postgresql://127.0.0.1:5432/poc", "source": "...config/application.properties]" },
-    { "key": "quarkus.datasource.password",  "value": "******",   "source": "...secrets/secrets.properties]", "secret": true },
+    { "key": "ledger.currency",              "value": "EUR",      "source": "YamlConfigSource[source=file:.../config/application-uat.yaml]" },
+    { "key": "ledger.transfer.max-amount",   "value": "1500.00",  "source": "...config/application-uat.yaml]" },
+    { "key": "ledger.transfer.blocked-ibans","value": "IT66X0100503200000012345678", "source": "...config/application-uat.yaml]" },
+    { "key": "quarkus.datasource.jdbc.url",  "value": "jdbc:postgresql://127.0.0.1:5432/poc", "source": "...config/application-uat.yaml]" },
+    { "key": "quarkus.datasource.password",  "value": "******",   "source": "...secrets/secrets.yaml]", "secret": true },
+    { "key": "quarkus.log.level",            "value": "INFO",     "source": "BdiDefaults[bdi-config-observability]" },
     { "key": "quarkus.http.port",            "value": "8080",     "source": "ValueRegistryConfigSource" }
   ]
 }
@@ -67,7 +68,8 @@ derives from the entities (cookbook 4 will bring Flyway for the classes where th
 
 Three things ops can verify from it on every stage, without reading code: the version that is running, the
 profile that is active, and that each key came from the file they rendered (and the password from the
-vault, not from inventory). `missing` lists required keys nobody provided; with one of them the process does
+vault, not from inventory). A `BdiDefaults[...]` source is a standardized default of a config module that
+nobody overrode; a YAML list (`blocked-ibans`) is echoed as its comma-joined value. `missing` lists required keys nobody provided; with one of them the process does
 not even start:
 
 ```
@@ -81,21 +83,25 @@ That is the behaviour the AAP pre-deploy validation front-runs by checking the r
 
 ## Rules of the config locations, as verified on RHBQ 3.33
 
-- `QUARKUS_CONFIG_LOCATIONS` takes a comma-separated list of files or directories. A directory contributes its
-  `application.properties` and, when a profile is active, its `application-<profile>.properties`. Files are
-  contributed as they are, so the secrets file is listed explicitly.
-- Values in these files override the ones inside the artifact; environment variables override both, which
-  keeps `QUARKUS_DATASOURCE_*`-style variables available for per-instance values (§2.2).
+- `QUARKUS_CONFIG_LOCATIONS` takes a comma-separated list of files or directories. The convention is two
+  explicit files: the fully rendered `application-<env>.yaml` and the secrets file. Any file name works.
+- A directory also works (it contributes its `application.yaml` and, with a profile active, its
+  `application-<profile>.yaml`), but a key present in both files is resolved from `application.yaml`, not
+  from the profile file. Hence one rendered file per environment; a `"%uat":` section inside it is fine.
+- Values in these files override the ones inside the artifact and the `BdiDefaults` of the config modules;
+  environment variables override everything, which keeps `QUARKUS_DATASOURCE_*`-style variables available
+  for per-instance values (§2.2).
 - A listed location that does not exist is ignored: a missing rendered file surfaces as a missing key, which
   is why the conformance check exists.
-- `QUARKUS_PROFILE` is a label plus the selector of the profile-aware file. The artifact carries no
-  `%prod` or `%uat` keys (lint-enforced), so the profile changes nothing inside it.
-- With the management interface enabled, health, OpenAPI and the conformance endpoint are on port 9000
-  (`quarkus.management.port`); the API stays on 8080 (`quarkus.http.port`). Both are platform keys.
+- `QUARKUS_PROFILE` is a label: the artifact carries no `"%prod":` or `"%uat":` section (lint-enforced),
+  so the profile changes nothing inside it. It does select `"%uat":` sections in rendered files.
+- Quote decimals in YAML (`"1500.00"`): unquoted they are floats and arrive as `1500.0`.
+- Health and the conformance endpoint are on port 9000 (`quarkus.management.port`); the API and its OpenAPI
+  document stay on 8080 (`quarkus.http.port`). Both are platform keys.
 
 ## Stage 2 and 3
 
 Same artifact, same two variables. [`src/main/docker/Dockerfile.jvm`](../src/main/docker/Dockerfile.jvm)
-builds the UBI 9 OpenJDK 21 image; the Quadlet unit or the Deployment mounts the rendered files at
-`/etc/bdi/poc-a-jakarta-classic/` and sets `QUARKUS_CONFIG_LOCATIONS` and `QUARKUS_PROFILE`. Cookbooks 15
+builds the UBI 9 OpenJDK 21 image; the Quadlet unit or the Deployment mounts the rendered file and the
+secret under `/etc/bdi/poc-a-jakarta-classic/` and sets `QUARKUS_CONFIG_LOCATIONS` and `QUARKUS_PROFILE`. Cookbooks 15
 and 16 will carry the AAP roles for both.

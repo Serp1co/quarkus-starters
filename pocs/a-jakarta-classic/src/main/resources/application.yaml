@@ -1,0 +1,30 @@
+# =============================================================================
+# POC A - developer-owned configuration (design notes 2.1 and 2.2)
+#
+# Rules, enforced by ArtifactConfigLintTest:
+#   * no "%prod" or environment section: the artifact is built once and
+#     configured per environment by the platform;
+#   * only "%dev" / "%test" inner-loop values live here.
+#
+# Everything else is standardized by the bdi-config-* modules of the starters
+# in use (management port, JSON logging, schema generation in the inner loop,
+# pool sizing) and rendered by the platform into the files named by
+# QUARKUS_CONFIG_LOCATIONS (see platform/README.md). What must be rendered is
+# the contract in META-INF/config-contract.json.
+#
+# Amounts are quoted: an unquoted 1000.00 is a YAML float and reaches the
+# application as "1000.0".
+# =============================================================================
+"%dev":
+  quarkus:
+    hibernate-orm:
+      sql-load-script: import-dev.sql   # three seed accounts for the inner loop
+  ledger:
+    transfer:
+      max-amount: "10000.00"
+"%test":
+  ledger:
+    transfer:
+      max-amount: "1000.00"
+      blocked-ibans:
+        - IT66X0100503200000012345678

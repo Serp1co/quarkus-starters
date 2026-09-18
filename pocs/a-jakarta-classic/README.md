@@ -2,8 +2,8 @@
 
 Migration class A of the design notes (§4.1): an application whose EAP footprint is **JAX-RS, CDI, JPA,
 JTA and Bean Validation**, moved to RHBQ 3.33 (Quarkus REST, ArC, Hibernate ORM 7, Narayana, Hibernate
-Validator). Status: first cut, all tests green in JVM mode against PostgreSQL, replayed on stage 1 of the
-target ladder (fast-jar + rendered configuration); no AAP role yet.
+Validator) through the `bdi-*` starters. Status: all tests green in JVM mode against PostgreSQL, replayed
+on stage 1 of the target ladder (fast-jar + rendered YAML configuration); no AAP role yet.
 
 The application is a small **ledger**: current accounts identified by IBAN and transfers between them,
 executed in one JTA transaction under rules (maximum amount, blocked IBANs, mandatory reference) that the
@@ -33,14 +33,14 @@ Everything under [`src/main/java/it/bancaditalia/quarkus/poc/jakarta`](src/main/
 | `service` | `AccountService`, `TransferService`: the business transactions | `@Stateless` became `@ApplicationScoped` + `@Transactional`; `@ApplicationException(rollback=true)` became a RuntimeException |
 | `api` | JAX-RS resources, record DTOs with constraints, `@Provider` exception mappers | unchanged (Jakarta REST 3.1 has no 422 constant, see cookbook 5) |
 | `validation` | `@Iban` constraint with a mod-97 `ConstraintValidator` | unchanged |
-| `config` | `LedgerConfig`, one `@ConfigMapping` interface: the developer's half of the contract | replaces JNDI env entries and system-property lookups |
-| `platform` | `PlatformContract` (the contract, defined once) and `ConformanceEndpoint` (`/q/platform`) | new; destined for the internal `bdi-quarkus-observability` extension |
+| `config` | `LedgerConfig`, one `@ConfigMapping` interface, and `LedgerContract`, the bean that contributes it to the config contract | replaces JNDI env entries and system-property lookups |
 
-Configuration the developer owns, [`src/main/resources/application.properties`](src/main/resources/application.properties):
-**one** build-time line (`quarkus.management.enabled=true`, itself a candidate for the internal extension)
-plus `%dev`/`%test` inner-loop keys. No `%prod`, no URL, no password, no port: `ArtifactConfigLintTest`
-fails the build if one appears. Deleted from the EAP version: `beans.xml`, `persistence.xml`,
-`web.xml`, `jboss-web.xml`.
+Configuration the developer owns, [`src/main/resources/application.yaml`](src/main/resources/application.yaml):
+**zero** non-profile lines. Only `"%dev":` and `"%test":` inner-loop values (the seed script and the
+transfer limits the tests expect). Management port, JSON logging, schema generation in the inner loop,
+pool sizing all come from the `bdi-config-*` modules of the starters. No `"%prod":`, no URL, no password,
+no port: `ArtifactConfigLintTest` fails the build if one appears. Deleted from the EAP version:
+`beans.xml`, `persistence.xml`, `web.xml`, `jboss-web.xml`.
 
 Tests, [`src/test/java`](src/test/java): `@QuarkusTest` + RestAssured for the API (`AccountResourceTest`,
 `TransferResourceTest`), `@Inject`-ed services for the transaction semantics (`TransferServiceTest` proves
@@ -49,32 +49,26 @@ that a failed debit rolls back the credit and the inserted row), the management 
 (`ArtifactConfigLintTest`), and the same API tests against the packaged fast-jar
 (`*IT`, `@QuarkusIntegrationTest`). Continuous testing runs all of them on every save in dev mode.
 
-### Extensions and their support status
+### Dependencies: starters, not extensions
 
-| Extension | Role | RHBQ 3.33 |
+The POM names four capabilities from [`bdi-quarkus`](../../bdi-quarkus/); the Quarkus extensions behind
+them (all RHBQ-supported, nothing from Quarkiverse) are listed there.
+
+| Starter | Gives the developer | Standardized by |
 |---|---|---|
-| `quarkus-rest`, `quarkus-rest-jackson` | JAX-RS + JSON | supported |
-| `quarkus-arc` | CDI | supported |
-| `quarkus-hibernate-orm` | JPA | supported |
-| `quarkus-narayana-jta` | JTA | supported |
-| `quarkus-hibernate-validator` | Bean Validation | supported |
-| `quarkus-jdbc-postgresql` | driver (PostgreSQL stands in for the bank's Oracle/DB2 until POC C) | supported |
-| `quarkus-smallrye-health` | readiness/liveness | supported, platform baseline |
-| `quarkus-logging-json` | JSON logs to stdout | supported, platform baseline |
-| `quarkus-smallrye-openapi` | OpenAPI | supported, platform baseline |
-| `quarkus-junit`, `rest-assured` | tests | supported (`quarkus-junit5` is a relocation since 3.31) |
-
-Nothing from Quarkiverse. Re-check the list against the RHBQ supported-configurations article when the
-stream changes (design note §9).
+| `bdi-rest-jackson` | JAX-RS, Jackson, Bean Validation, OpenAPI on the API port | `bdi-config-rest`: compression, UTC |
+| `bdi-jpa-postgresql` | JPA, JTA, PostgreSQL driver (the Oracle and Db2 estates take `bdi-jpa-oracle` / `bdi-jpa-db2`, same code) | `bdi-config-jpa`: pool 2..20, 120 s transaction timeout, `drop-and-create` in `%dev`/`%test` only, SQL log in dev |
+| `bdi-observability` | health and the `/q/platform` conformance endpoint on port 9000, JSON logs, the config contract | `bdi-config-observability`: management interface on, JSON in environments and plain in the inner loop, INFO |
+| `bdi-test` | `@QuarkusTest`, RestAssured | |
 
 ## What the platform provided
 
 See [platform/README.md](platform/README.md) for the replayable stage-1 walkthrough. In short:
 
-- the rendered [`platform/config/application.properties`](platform/config/application.properties) and
-  [`application-uat.properties`](platform/config/application-uat.properties), at a fixed path;
-- the vault-delivered [`platform/secrets/secrets.properties`](platform/secrets/secrets.properties), same
-  path on every stage;
+- the rendered [`platform/config/application-uat.yaml`](platform/config/application-uat.yaml), one file
+  per environment at a fixed path;
+- the vault-delivered [`platform/secrets/secrets.yaml`](platform/secrets/secrets.yaml), same path on every
+  stage;
 - two environment variables in the unit, `QUARKUS_CONFIG_LOCATIONS` and `QUARKUS_PROFILE`;
 - the runtime: JDK, service user, ports, JVM flags, journald, the rolling update gated on
   `/q/health/ready`, the conformance check on `/q/platform`;
@@ -85,19 +79,23 @@ See [platform/README.md](platform/README.md) for the replayable stage-1 walkthro
 
 Exported to [`src/main/resources/META-INF/config-contract.json`](src/main/resources/META-INF/config-contract.json)
 (inside the artifact, kept in sync by `ConfigContractTest`; refresh with
-`./mvnw test -Dconfig-contract.update=true`). AAP validates the rendered file against it before a deploy.
+`./mvnw test -Dconfig-contract.update=true`). The application keys come from `LedgerConfig`; the platform
+keys from the config modules of the starters in use. AAP validates the rendered file against it before a
+deploy.
 
+| Key | Type | Required | Default | Owner | Description |
+|---|---|---|---|---|---|
 | `ledger.currency` | String | no | `EUR` | application | ISO 4217 code of the currency every account of this ledger is denominated in |
 | `ledger.transfer.blocked-ibans` | list<String> | no |  | application | IBANs that may neither send nor receive, e.g. the sanctions list feed; comma separated |
 | `ledger.transfer.max-amount` | BigDecimal | yes |  | application | Upper bound for a single transfer; the platform sets it per environment |
 | `ledger.transfer.require-reference` | boolean | no | `false` | application | Reject transfers that carry no reference (causale) |
-| `quarkus.datasource.jdbc.url` | String | yes |  | platform | JDBC URL of the ledger database (Agroal pool) |
+| `quarkus.datasource.jdbc.url` | String | yes |  | platform | JDBC URL of the application database (Agroal pool) |
 | `quarkus.datasource.username` | String | yes |  | platform | Database user of this application |
 | `quarkus.datasource.password` | String | yes |  | platform (secret) | Database password, delivered from the vault |
-| `quarkus.datasource.jdbc.max-size` | int | no | `50` | platform | Upper bound of the connection pool |
-| `quarkus.http.port` | int | no | `8080` | platform | Application port, the load balancer target |
+| `quarkus.datasource.jdbc.max-size` | int | no | `20` | platform | Upper bound of the connection pool |
 | `quarkus.management.port` | int | no | `9000` | platform | Management port: health, conformance endpoint |
 | `quarkus.log.level` | String | no | `INFO` | platform | Root log level |
+| `quarkus.http.port` | int | no | `8080` | platform | API port, the load balancer target |
 
 ## Run it
 
@@ -126,12 +124,12 @@ table exists from day one (design note §4.6).
 
 | Metric | Value |
 |---|---|
-| Start-up to ready, prod profile, fast-jar | 2.4 s (Quarkus "started in") |
+| Start-up to ready, prod profile, fast-jar | 2.4 to 3.5 s across runs (Quarkus "started in") |
 | RSS after 300 requests | 268 MB with default JVM flags, 272 MB with `-Xmx256m` (the heap is not the driver at this load) |
 | Artifact size (`target/quarkus-app/`) | 51 MB |
 | Clean `package` without tests, warm cache | 10 s |
-| Test suite | 20 tests (`@QuarkusTest`) + 13 integration tests, all green |
-| Config lines owned by the developer (non-profile) | 1 (`quarkus.management.enabled`) |
+| Test suite | 21 tests (`@QuarkusTest`) + 13 integration tests, all green |
+| Config lines owned by the developer (non-profile) | 0 (was 1 before the config modules; the `%dev`/`%test` sections hold 4 values) |
 | Throughput | not measured in the sandbox (no load tool); take it on the target VM class |
 | Deploy and rollback time | needs the AAP job template (cookbook 14) |
 
@@ -142,9 +140,8 @@ table exists from day one (design note §4.6).
 - **Database.** PostgreSQL here; Oracle/DB2 drivers and named datasources are POC C.
 - **Security.** `/q/platform` echoes non-secret configuration; the management port must be firewalled to
   ops and the LB by the platform, and the endpoint gets a path policy in cookbook 12.
-- **Observability.** JSON logs and health only; Micrometer and OpenTelemetry arrive with cookbook 13, ideally
-  through the `bdi-quarkus-observability` extension so that this POC's `platform` package and its one
-  build-time line disappear from application code.
+- **Observability.** JSON logs and health only; Micrometer and OpenTelemetry arrive with cookbook 13 as
+  additions to `bdi-observability`, so that no application changes.
 - **AAP.** The job template deploying this artifact on the three stages (cookbooks 14 to 16), and the
   contract validation task that reads `config-contract.json`.
 - **Concurrency.** `@Version` detects lost updates; a mapper turning `OptimisticLockException` into 409

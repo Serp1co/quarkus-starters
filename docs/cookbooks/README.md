@@ -7,8 +7,8 @@ has been run on at least stage 1 of the target ladder, so that every claim in it
 |---|---|---|---|
 | 1 | Sizing the estate with MTA/MTR (Quarkus, EAP 8, OpenJDK targets) | estate assessment | planned, first |
 | 2 | Target and packaging: VM vs Podman vs OCP; JVM vs native | POC A numbers | planned |
-| 3 | Externalizing configuration: locations, profiles, `@ConfigMapping`, the contract schema | POC A, `concepts/platform-contract` | draft in [POC A README](../../pocs/a-jakarta-classic/README.md) and [platform walkthrough](../../pocs/a-jakarta-classic/platform/README.md) |
-| 4 | Datasources and secrets (Agroal, Oracle/DB2, vault integration) | POC C | planned |
+| 3 | Externalizing configuration: locations, profiles, `@ConfigMapping`, the contract schema, YAML rules | POC A, `concepts/platform-contract`, `bdi-quarkus` | draft in the [platform walkthrough](../../pocs/a-jakarta-classic/platform/README.md) and [bdi-quarkus/README.md](../../bdi-quarkus/README.md) |
+| 4 | Datasources and secrets (Agroal, the `bdi-jpa-*` variations for PostgreSQL/Oracle/Db2, CyberArk and HashiCorp) | POC C | planned |
 | 5 | JAX-RS / CDI / JPA from EAP | POC A | [05-jaxrs-cdi-jpa-from-eap.md](05-jaxrs-cdi-jpa-from-eap.md) |
 | 6 | EJB / MDB / timers / XA recovery | POC B | planned |
 | 7 | Remote EJB replacement (REST, gRPC, façade pattern, tx and identity propagation) | Remote EJB POC | planned |

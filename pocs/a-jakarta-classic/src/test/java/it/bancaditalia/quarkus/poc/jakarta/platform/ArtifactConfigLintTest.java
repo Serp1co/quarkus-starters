@@ -10,6 +10,6 @@ class ArtifactConfigLintTest {
 
     @Test
     void theArtifactCarriesNoEnvironmentSpecificKeys() throws IOException {
-        ArtifactConfigLint.assertNoBannedProfileKeys(Path.of("src/main/resources/application.properties"));
+        ArtifactConfigLint.assertNoBannedProfileKeys(Path.of("src/main/resources/application.yaml"));
     }
 }

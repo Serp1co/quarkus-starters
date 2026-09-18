@@ -29,8 +29,10 @@ class ConformanceEndpointTest {
                 .body("application.profiles", hasItem("test"))
                 .body("missing", empty())
                 .body("config.find { it.key == 'ledger.transfer.max-amount' }.value", is("1000.00"))
-                .body("config.find { it.key == 'ledger.transfer.max-amount' }.source", containsString("application.properties"))
+                                .body("config.find { it.key == 'ledger.transfer.max-amount' }.source", containsString("application.yaml"))
                 .body("config.find { it.key == 'ledger.currency' }.value", is("EUR"))
+                .body("config.find { it.key == 'quarkus.datasource.jdbc.max-size' }.value", is("20"))
+                .body("config.find { it.key == 'quarkus.datasource.jdbc.max-size' }.source", is("BdiDefaults[bdi-config-jpa]"))
                 .body("config.find { it.key == 'quarkus.datasource.password' }.secret", is(true))
                 .body("config.find { it.key == 'quarkus.datasource.password' }.value", anyOf(nullValue(), is("******")))
                 .body("config.key", not(hasItem(containsString("*"))));

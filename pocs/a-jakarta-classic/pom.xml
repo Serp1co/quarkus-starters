@@ -19,63 +19,26 @@
   </description>
 
   <dependencies>
-    <!-- ===== What the developer wrote against: the Jakarta EE APIs already used on EAP. RHBQ-supported. ===== -->
+    <!--
+      The developer names capabilities, not Quarkus extensions (design note 2.3): each bdi-* starter is an
+      opinionated, RHBQ-supported dependency set plus the bdi-config-* module that configures it. The JPA
+      starter is the one variation the team picks, according to the database of the application.
+    -->
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-rest</artifactId>                <!-- JAX-RS (Jakarta REST) -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-rest-jackson</artifactId>        <!-- JSON binding for REST -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-arc</artifactId>                 <!-- CDI -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-hibernate-orm</artifactId>       <!-- JPA (Jakarta Persistence) -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-narayana-jta</artifactId>        <!-- JTA: @Transactional on CDI beans -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-hibernate-validator</artifactId> <!-- Bean Validation -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jdbc-postgresql</artifactId>     <!-- JDBC driver: the one build-time choice the bank makes -->
-    </dependency>
-
-    <!-- ===== Platform baseline: what the bdi-quarkus-* internal extensions will inject (design note 2.3). RHBQ-supported. ===== -->
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-health</artifactId>     <!-- /q/health/ready gates the rolling update -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-logging-json</artifactId>        <!-- JSON to stdout, captured by journald / podman / OpenShift Logging -->
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-openapi</artifactId>    <!-- API contract at /q/openapi -->
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-rest-jackson</artifactId>       <!-- JAX-RS, Jackson, Bean Validation, OpenAPI -->
     </dependency>
     <dependency>
       <groupId>it.bancaditalia.quarkus</groupId>
-      <artifactId>platform-contract</artifactId>           <!-- config contract + conformance echo (this repository) -->
-    </dependency>
-
-    <!-- ===== Tests ===== -->
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit</artifactId>
-      <scope>test</scope>
+      <artifactId>bdi-jpa-postgresql</artifactId>     <!-- JPA, JTA, PostgreSQL driver; or bdi-jpa-oracle / bdi-jpa-db2 -->
     </dependency>
     <dependency>
-      <groupId>io.rest-assured</groupId>
-      <artifactId>rest-assured</artifactId>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-observability</artifactId>      <!-- health, JSON logs, conformance endpoint, config contract -->
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

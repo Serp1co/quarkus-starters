@@ -20,12 +20,18 @@ public class PlatformConfigResource implements QuarkusTestResourceLifecycleManag
     public Map<String, String> start() {
         try {
             Path dir = Files.createDirectories(Path.of("target", "it-platform"));
-            Files.writeString(dir.resolve("application.properties"), """
+            Files.writeString(dir.resolve("application.yaml"), """
                     # Rendered for the integration tests; the AAP role does this for real environments.
-                    ledger.transfer.max-amount=1000.00
-                    ledger.transfer.blocked-ibans=IT66X0100503200000012345678
+                    ledger:
+                      transfer:
+                        max-amount: "1000.00"
+                        blocked-ibans:
+                          - IT66X0100503200000012345678
                     # The integration-test database is empty: let Hibernate create the schema (a DBA job elsewhere).
-                    quarkus.hibernate-orm.schema-management.strategy=drop-and-create
+                    quarkus:
+                      hibernate-orm:
+                        schema-management:
+                          strategy: drop-and-create
                     """);
             return Map.of("quarkus.config.locations", dir.toAbsolutePath().toString());
         } catch (IOException e) {
