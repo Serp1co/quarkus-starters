@@ -11,7 +11,7 @@
   tags: [always]
 
 - ansible.builtin.import_tasks: render.yml
-  tags: [render, validate, verify]
+  tags: [render, validate, install]
 
 - name: Version and artifact, from the survey or from the release fragment
   ansible.builtin.set_fact:
