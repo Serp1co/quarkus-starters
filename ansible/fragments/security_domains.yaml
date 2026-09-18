@@ -1,0 +1,15 @@
+# security_domains.yml (Elytron: LDAP/JDBC/Kerberos realms, role mappers)  ->  one bdi-security-* starter per
+# variation (design addendum): RHBK (OIDC) or AD/LDAP; web.xml constraints become quarkus.http.auth.permission.*.
+# Owner: application fragment (which domain, which paths) + platform (URLs, bind credentials from the vault).
+kind: security_domain               # status: recognised, not translated (planned with the security POC, cookbook 12)
+name: default
+type: oidc                          # oidc -> bdi-security-oidc: quarkus.oidc.auth-server-url, client-id, credentials.secret (vault)
+                                    # ldap -> bdi-security-ldap: quarkus.security.ldap.dir-context.url, bind-dn, bind-credential (vault)
+# auth_server_url: "https://rhbk.example/realms/bdi"
+# client_id: "<app>"
+# client_secret: "${fromvault.oidc.CLIENT_SECRET}"
+# permissions:                      # the web.xml <security-constraint> table, platform-owned
+#   - paths: ["/api/*"]
+#     policy: authenticated         # -> quarkus.http.auth.permission.api.paths / .policy
+#   - paths: ["/api/admin/*"]
+#     roles: ["admin"]              # -> quarkus.http.auth.policy.admin.roles-allowed

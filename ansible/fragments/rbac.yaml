@@ -1,0 +1,8 @@
+# rbac.yml (EAP management RBAC: who may use the console/CLI)  ->  no management console exists.
+# Owner: AAP. The equivalent questions are: who may run which job template on which inventory (AAP RBAC), and who
+# may reach the management port (firewalld to ops and the LB; optionally quarkus.management.auth.* for basic/OIDC
+# protection of /q/*). Nothing is rendered into the application.
+kind: rbac                          # status: not applicable (documented, ignored by the role)
+# roles:
+#   - name: Deployer              # -> AAP team with execute on the deploy job template of this app's inventories
+#   - name: Monitor               # -> AAP read access + firewalld rule for the management port

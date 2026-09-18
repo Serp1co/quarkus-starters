@@ -1,0 +1,15 @@
+# datasources.yml  ->  quarkus.datasource.* (translated by the role today). Owner: application fragment.
+# One fragment per datasource; the file name carries the datasource name (datasource.<name>.yaml).
+# driver and XA are decided by the artifact (bdi-jpa-postgresql / -oracle / -db2 starter); jndi has no equivalent.
+kind: datasource                    # status: translated
+name: default                       # default -> quarkus.datasource.*; any other name -> quarkus.datasource.<name>.* (named datasource)
+type: xa-data-source                # xa-data-source -> quarkus.datasource.jdbc.transactions=xa; data-source -> enabled (default)
+driver: oracle                      # informational: must match the bdi-jpa-* starter of the artifact
+url: "jdbc:oracle:thin:@//host:1521/SERVICE"   # xa_oracle_url / connection_url accepted too -> quarkus.datasource.jdbc.url
+user: "${fromvault.app.USERNAME}"   # -> quarkus.datasource.username (secrets.yaml when it is a placeholder)
+password: "${fromvault.app.PASSWORD}"   # -> quarkus.datasource.password, always from the vault
+pool_min: 5                         # -> quarkus.datasource.jdbc.min-size
+pool_max: 6                         # -> quarkus.datasource.jdbc.max-size
+trx_isolation: TRANSACTION_READ_COMMITTED   # -> quarkus.datasource.jdbc.transaction-isolation-level=read-committed
+enable_statistics: true             # -> quarkus.datasource.metrics.enabled
+validate_on_match: true             # no equivalent: Agroal validates in the background (translation note)

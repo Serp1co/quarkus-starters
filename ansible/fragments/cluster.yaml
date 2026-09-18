@@ -1,0 +1,13 @@
+# cluster.yml  ->  no Quarkus runtime cluster. Owner: platform (instances) + application (what needed the cluster).
+# EAP clustered three things; each has a different home on Quarkus:
+#   HTTP sessions replicated     -> stateless services behind the LB (OIDC bearer tokens, no session); if a session is
+#                                   unavoidable, the Web UI class E decides (cookbook 11/12)
+#   HA singleton timers           -> quarkus-quartz clustered on the database (kind: scheduler, planned)
+#   JGroups/Infinispan caches     -> Red Hat Data Grid client (quarkus-infinispan-client, planned starter bdi-cache-datagrid)
+# What stays per instance: the XA recovery node name and the LB pool membership.
+kind: cluster                       # status: recognised, not translated (planned)
+name: ""                            # EAP cluster name (informational)
+instances: 2                        # per host; platform: one unit per instance, ports offset (see instance.yaml)
+# transaction_node_name: ""         # per instance -> quarkus.transaction-manager.node-name (set by the unit, unique per instance)
+# timers: quartz-jdbc               # -> bdi-scheduler starter (planned): quarkus.quartz.clustered=true, store on the app database
+# cache: datagrid                   # -> bdi-cache-datagrid starter (planned): quarkus.infinispan-client.*

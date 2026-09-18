@@ -1,0 +1,11 @@
+# syslog.yml (EAP syslog handler)  ->  quarkus.log.syslog.* (translated by the role today), or rsyslog on the host.
+# Owner: platform default is "no syslog handler in the app": journald captures stdout and rsyslog forwards it to the
+# SIEM. This fragment exists for the applications that must speak syslog themselves (e.g. audit to a dedicated collector).
+kind: syslog                        # status: translated
+enabled: true                       # -> quarkus.log.syslog.enable
+endpoint: "siem.example:514"        # -> quarkus.log.syslog.endpoint
+protocol: tcp                       # -> quarkus.log.syslog.protocol
+app_name: "<app>"                   # -> quarkus.log.syslog.app-name
+facility: local0                    # -> quarkus.log.syslog.facility
+# json: true                        # -> quarkus.log.syslog.json.enabled
+# level: INFO                       # -> quarkus.log.syslog.level

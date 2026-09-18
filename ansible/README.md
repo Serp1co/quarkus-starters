@@ -16,6 +16,9 @@ lost; what changes is what the fragments render into.
 | nothing checks the configuration before deploying | the rendered files are validated against `META-INF/config-contract.json` of the exact artifact, before the host is touched |
 | nothing checks the deployment after | `/q/platform` reports version, profile and the source of every key |
 
+The full catalogue of EAP fragment files and their parallel is in [`fragments/README.md`](fragments/README.md),
+with one skeleton per file.
+
 ## Layout
 
 ```
@@ -27,7 +30,9 @@ ansible/
     filter_plugins/bdi.py     fragment translation, secret routing, contract check (pure Python)
     templates/app.service.j2  the hardened unit; never in an application repository
   inventory/sandbox/          one "VM" (the controller itself), a uat group, the fragments of POC A, a vault stand-in
-    apps/<app>/*.yaml         the fragments ops write: datasource.*, config.*, property.*
+    apps/<app>/*.yaml         the fragments ops write: datasource.*, config.*, properties, log_categories, keystore, ...
+  fragments/                  one skeleton per EAP fragment file, with its Quarkus parallel and owner
+  tests/                      unit tests of the translation filter (python3 -m pytest ansible/tests)
 ```
 
 ## The flow, task by task

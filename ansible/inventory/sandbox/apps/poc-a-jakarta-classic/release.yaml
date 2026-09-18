@@ -1,0 +1,4 @@
+# Defaults for the deploy: overridden by the survey (-e bdi_version / bdi_artifact_url). The sandbox passes a file:// URL.
+kind: release
+version: 1.0.0-SNAPSHOT
+artifact_url: "https://nexus.example/repository/releases/it/bancaditalia/quarkus/poc-a-jakarta-classic/1.0.0-SNAPSHOT/poc-a-jakarta-classic-1.0.0-SNAPSHOT-quarkus-app.zip"

@@ -1,0 +1,9 @@
+# vault.yml (EAP vault / credential store)  ->  the placeholder scopes of this application and the vault paths they
+# resolve from. Owner: platform (the lookup) + application (which scopes it uses). Values never touch the inventory:
+# the role resolves ${fromvault.<scope>.<NAME>} at deploy time and writes secrets.yaml (0600).
+kind: vault                         # status: translated (declares scopes; the lookup task uses the paths)
+provider: hashicorp                 # hashicorp | cyberark | ansible-vault (the estate has more than one)
+scopes:
+  app: "secret/data/<env>/<app>/app"           # ${fromvault.app.*}
+  tls: "secret/data/<env>/<app>/tls"           # ${fromvault.tls.*}
+  # oidc: "secret/data/<env>/<app>/oidc"

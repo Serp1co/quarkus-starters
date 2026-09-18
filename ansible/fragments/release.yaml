@@ -1,0 +1,7 @@
+# release.yml (which artifact version is deployed where)  ->  the survey of the deploy job template, or this file.
+# Owner: the environment's inventory (GitOps style: a pull request changes the version, the job template deploys it).
+# When bdi_version / bdi_artifact_url are not given on the command line, the role takes them from here.
+kind: release                       # status: translated (defaults for bdi_version and bdi_artifact_url)
+version: 1.0.0-SNAPSHOT
+artifact_url: "https://nexus.example/repository/releases/it/bancaditalia/quarkus/<app>/1.0.0-SNAPSHOT/<app>-1.0.0-SNAPSHOT-quarkus-app.zip"
+# checksum: "sha256:..."            # -> get_url checksum (planned)

@@ -4,14 +4,28 @@
 #   on readiness -> conformance check. Nothing application-specific lives in this role: the application is
 #   named by bdi_app, described by its fragments under {{ bdi_apps_dir }}/{{ bdi_app }} and by the contract
 #   inside its artifact.
-- name: Check the required variables
+- name: The application must be named
   ansible.builtin.assert:
-    that: [bdi_app | length > 0, bdi_version | length > 0, bdi_artifact_url | length > 0]
-    fail_msg: "bdi_app, bdi_version and bdi_artifact_url are required (survey fields of the job template)"
+    that: bdi_app | length > 0
+    fail_msg: "bdi_app is required (survey field of the job template)"
   tags: [always]
 
 - ansible.builtin.import_tasks: render.yml
-  tags: [render, validate]
+  tags: [render, validate, verify]
+
+- name: Version and artifact, from the survey or from the release fragment
+  ansible.builtin.set_fact:
+    bdi_version: "{{ bdi_version if bdi_version | length > 0 else bdi_rendered.platform.release.version | default('') }}"
+    bdi_artifact_url: "{{ bdi_artifact_url if bdi_artifact_url | length > 0 else bdi_rendered.platform.release.artifact_url | default('') }}"
+    bdi_java_opts: "{{ bdi_rendered.platform.java_opts | default(bdi_java_opts) }}"
+    bdi_management_port: "{{ bdi_rendered.config.quarkus.management.port | default(bdi_management_port) }}"
+  tags: [always]
+
+- name: Check the required variables
+  ansible.builtin.assert:
+    that: [bdi_version | length > 0, bdi_artifact_url | length > 0]
+    fail_msg: "bdi_version and bdi_artifact_url are required: survey fields, or a release fragment under apps/{{ bdi_app }}"
+  tags: [always]
 - ansible.builtin.import_tasks: artifact.yml
   tags: [artifact, validate]
 - ansible.builtin.import_tasks: validate.yml

@@ -1,0 +1,4 @@
+kind: vault
+provider: ansible-vault             # sandbox: inventory/sandbox/vault/uat.yml stands in for the vault
+scopes:
+  app: "secret/data/uat/poc-a-jakarta-classic/app"

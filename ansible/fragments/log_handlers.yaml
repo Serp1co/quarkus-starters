@@ -1,0 +1,13 @@
+# log_handlers.yml (file, periodic-rotating, size-rotating, async, syslog handlers)  ->  mostly the platform.
+# The standard is JSON on stdout (bdi-config-observability), captured by journald and shipped by rsyslog/OpenShift
+# Logging; there is no per-application log file to rotate. Two exceptions remain configurable per application.
+kind: log_handlers                  # status: recognised; file and syslog handlers translated, the rest reported
+# handlers:
+#   - type: file                    # -> quarkus.log.file.enable=true, .path, .rotation.max-file-size, .rotation.max-backup-index
+#     path: /var/log/bdi/<app>/app.log
+#     rotate_size: 50M
+#     max_backups: 10
+#     json: true                    # -> quarkus.log.file.json.enabled
+#   - type: syslog                  # -> see syslog.yaml
+#   - type: async                   # dropped: the console handler is already non-blocking enough; journald buffers
+#   - type: periodic-rotating       # -> file handler with quarkus.log.file.rotation.file-suffix

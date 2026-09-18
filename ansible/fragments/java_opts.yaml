@@ -1,0 +1,8 @@
+# java_opts.yml  ->  JAVA_OPTS of the systemd unit (platform), never inside the application or its configuration.
+# The platform standardizes the flags (design note 3, stage 1); an application overrides only with a reason.
+kind: java_opts                     # status: translated into the unit (platform output of the render)
+# heap:
+#   max_ram_percentage: 75          # -> -XX:MaxRAMPercentage=75 (never -Xmx on a VM: the cgroup/host memory decides)
+# gc: parallel                      # -> -XX:+UseParallelGC (serial for < 2 cores, G1 for large heaps)
+# extra: []                         # -> appended verbatim, e.g. -Dfile.encoding=UTF-8 (the platform already sets it)
+# debug: false                      # -> -agentlib:jdwp (non-prod only; the platform refuses it in prod)

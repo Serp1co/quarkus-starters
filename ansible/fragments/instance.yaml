@@ -1,0 +1,9 @@
+# jboss-osc-raccolta-be1.yml (one EAP server instance on one host)  ->  one systemd unit per instance (platform).
+# Owner: platform (host_vars). Port offsets become explicit ports; bind addresses become the listen hosts.
+kind: instance                      # status: translated into the unit (platform output of the render)
+name: be1                           # -> unit name bdi-<app>-<name>.service when an app has several instances on a host
+http_port: 8080                     # -> quarkus.http.port (platform key)
+management_port: 9000               # -> quarkus.management.port (platform key)
+bind_address: 0.0.0.0               # -> quarkus.http.host; management interface likewise
+# transaction_node_name: be1        # -> quarkus.transaction-manager.node-name (XA recovery, unique per instance)
+# port_offset: 100                  # EAP habit: express the resulting ports directly instead

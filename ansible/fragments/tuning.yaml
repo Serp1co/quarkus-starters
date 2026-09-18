@@ -1,0 +1,11 @@
+# etuning.yml (EAP subsystem tuning: undertow/io workers, ejb pools, jca pools)  ->  Quarkus thread pools and HTTP limits.
+# Owner: platform default (bdi-config-*), overridable per application. Most EAP tuning has no Quarkus counterpart
+# because there is no EJB container and no JCA; what remains is the worker pool and the HTTP limits.
+kind: tuning                        # status: recognised, not translated (planned: bdi-config-rest / observability defaults)
+# worker_threads: 200               # -> quarkus.thread-pool.max-threads (blocking worker pool for REST + JPA)
+# io_threads: 4                     # -> quarkus.http.io-threads (event loops; default = cores)
+# max_connections: 1000             # -> quarkus.http.limits.max-connections
+# max_post_size: 10M                # -> quarkus.http.limits.max-body-size
+# request_timeout: 60S              # -> quarkus.http.read-timeout
+# ejb_pool_size: 20                 # dropped: no EJB container (cookbook 6)
+# jca_pool_size: 20                 # dropped: resource adapters are a Quarkiverse/unsupported path (design note 4.3)

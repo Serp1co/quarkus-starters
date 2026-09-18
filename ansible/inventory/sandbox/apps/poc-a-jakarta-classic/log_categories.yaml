@@ -1,0 +1,4 @@
+kind: log_categories
+categories:
+  - name: it.bancaditalia
+    level: DEBUG

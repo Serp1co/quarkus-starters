@@ -1,0 +1,11 @@
+# system_properties.yml / system_properties.<name>.yml  ->  keys in application-<env>.yaml (translated today).
+# Owner: application fragment. A property that the application reads through its @ConfigMapping keeps its name;
+# EAP-internal ones (jboss.as.management.blocking.timeout, ...) have no equivalent and are dropped with a note.
+kind: properties                    # status: translated (also the single-entry form: kind: property, name, value)
+properties:
+  - name: ledger.transfer.max-amount   # a contract key of the application
+    value: "1500.00"
+  - name: PROCEDIMENTI_USERNAME        # EAP-era name: keep it only if the application still reads it verbatim
+    value: "${fromvault.app.USERNAME}"
+  # - name: jboss.as.management.blocking.timeout   # dropped: EAP internal
+  #   value: "600"

@@ -17,6 +17,11 @@
     msg: "{{ bdi_rendered.warnings }}"
   when: bdi_rendered.warnings | length > 0
 
+- name: Vault scopes declared by the application (the lookup task resolves each scope from its path)
+  ansible.builtin.debug:
+    msg: "{{ bdi_rendered.platform.vault }}"
+  when: bdi_rendered.platform.vault is defined
+
 - name: Resolve the vault placeholders (swap this task for the estate's vault lookup)
   ansible.builtin.set_fact:
     bdi_secrets_flat: "{{ bdi_secrets_flat | default({}) | combine({item.key: bdi_vault[item.value.scope][item.value.name]}) }}"

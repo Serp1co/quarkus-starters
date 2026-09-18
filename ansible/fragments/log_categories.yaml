@@ -1,0 +1,7 @@
+# log_categories.yml  ->  quarkus.log.category."<name>".level (translated by the role today). Owner: application fragment.
+kind: log_categories                # status: translated
+categories:
+  - name: it.bancaditalia           # -> quarkus.log.category."it.bancaditalia".level
+    level: INFO
+  - name: org.hibernate.SQL
+    level: WARN
