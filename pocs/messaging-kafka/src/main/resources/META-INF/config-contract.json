@@ -1,0 +1,22 @@
+{
+  "keys": [
+    {"name": "payments.poison-prefix", "type": "String", "required": false, "default": "POISON", "secret": false, "owner": "application", "doc": "POC hook: an event for an account starting with this prefix fails in the consumer and goes to the dead-letter topic"},
+    {"name": "mp.messaging.outgoing.payments-out.topic", "type": "String", "required": false, "default": "payments", "secret": false, "owner": "platform", "doc": "Topic the API produces payment events to"},
+    {"name": "mp.messaging.incoming.payments-in.topic", "type": "String", "required": false, "default": "payments", "secret": false, "owner": "platform", "doc": "Topic the balance consumer reads"},
+    {"name": "mp.messaging.incoming.payments-in.group.id", "type": "String", "required": false, "default": "poc-messaging-kafka-balances", "secret": false, "owner": "platform", "doc": "Consumer group: the platform's naming convention"},
+    {"name": "mp.messaging.incoming.payments-in.dead-letter-queue.topic", "type": "String", "required": false, "default": "dead-letter-topic-payments-in", "secret": false, "owner": "platform", "doc": "Where failed records go"},
+    {"name": "mp.messaging.incoming.payments-dlq.topic", "type": "String", "required": false, "default": "dead-letter-topic-payments-in", "secret": false, "owner": "platform", "doc": "The dead-letter topic the operations consumer reads"},
+    {"name": "quarkus.datasource.jdbc.url", "type": "String", "required": true, "default": null, "secret": false, "owner": "platform", "doc": "JDBC URL of the application database (Agroal pool)"},
+    {"name": "quarkus.datasource.username", "type": "String", "required": true, "default": null, "secret": false, "owner": "platform", "doc": "Database user of this application"},
+    {"name": "quarkus.datasource.password", "type": "String", "required": true, "default": null, "secret": true, "owner": "platform", "doc": "Database password, delivered from the vault"},
+    {"name": "quarkus.datasource.jdbc.max-size", "type": "int", "required": false, "default": "20", "secret": false, "owner": "platform", "doc": "Upper bound of the connection pool"},
+    {"name": "quarkus.transaction-manager.node-name", "type": "String", "required": false, "default": "quarkus", "secret": false, "owner": "platform", "doc": "XA recovery node name: unique per instance (EAP: the server name)"},
+    {"name": "quarkus.transaction-manager.object-store.directory", "type": "String", "required": false, "default": "ObjectStore", "secret": false, "owner": "platform", "doc": "XA transaction log: persistent, node-local, outside the release directory (EAP: standalone/data/tx-object-store)"},
+    {"name": "kafka.bootstrap.servers", "type": "String", "required": true, "default": null, "secret": false, "owner": "platform", "doc": "Kafka / AMQ Streams bootstrap servers"},
+    {"name": "kafka.security.protocol", "type": "String", "required": false, "default": "PLAINTEXT", "secret": false, "owner": "platform", "doc": "PLAINTEXT, SSL, SASL_SSL: the platform's choice per environment"},
+    {"name": "kafka.sasl.mechanism", "type": "String", "required": false, "default": "", "secret": false, "owner": "platform", "doc": "OAUTHBEARER with RHBK, SCRAM-SHA-512, or empty"},
+    {"name": "quarkus.management.port", "type": "int", "required": false, "default": "9000", "secret": false, "owner": "platform", "doc": "Management port: health, conformance endpoint"},
+    {"name": "quarkus.log.level", "type": "String", "required": false, "default": "INFO", "secret": false, "owner": "platform", "doc": "Root log level"},
+    {"name": "quarkus.http.port", "type": "int", "required": false, "default": "8080", "secret": false, "owner": "platform", "doc": "API port, the load balancer target"}
+  ]
+}

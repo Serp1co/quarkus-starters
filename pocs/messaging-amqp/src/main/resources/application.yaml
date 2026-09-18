@@ -1,0 +1,24 @@
+# =============================================================================
+# POC messaging-amqp - developer-owned configuration: inner loop only.
+# The AMQP connector is attached to the channels automatically (the only
+# connector on the classpath); addresses default to the channel names and are
+# platform keys. Dev Services start an AMQ Broker (Artemis) in dev and test.
+# =============================================================================
+"%dev":
+  mp:
+    messaging:
+      incoming:
+        orders-in:
+          address: orders
+      outgoing:
+        orders-out:
+          address: orders
+"%test":
+  mp:
+    messaging:
+      incoming:
+        orders-in:
+          address: orders
+      outgoing:
+        orders-out:
+          address: orders

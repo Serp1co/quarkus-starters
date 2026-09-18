@@ -11,9 +11,9 @@ measured numbers. Every POC builds from the root parent POM, so all of them shar
 | C | Legacy integration: JAX-WS (Quarkus CXF), Oracle and Db2 through `bdi-jpa-oracle` / `bdi-jpa-db2`, named datasources (4.1 C) | `c-legacy-integration` | planned |
 | D | Spring WAR: `quarkus-spring-*` compatibility vs idiomatic rewrite (4.1 D) | `d-spring-war` | planned |
 | E | Web UI: JSF/JSP decision cookbook (4.1 E) | `e-web-ui` | planned, only if the estate has it |
-| Remote EJB | Replacement matrix: REST client, gRPC, façade, tx and identity propagation (4.2) | `remote-ejb-replacement` | planned |
-| Messaging | Reactive Messaging vs JMS over AMQP 1.0 on AMQ Broker, IBM MQ; outbox and idempotent consumer (4.3) | `messaging-amqp`, `messaging-ibmmq` | planned |
-| Kafka | messaging vs Streams vs client; Apicurio schema registry (4.4) | `kafka` | planned |
+| Remote EJB | Replacement matrix: REST client, gRPC, façade, tx and identity propagation (4.2) | `remote-ejb-replacement` | planned, last |
+| Messaging | Reactive Messaging vs JMS over AMQP 1.0 on AMQ Broker; outbox, idempotent consumer, redelivery and DLQ (4.3) | [`messaging-amqp`](messaging-amqp/) | done; IBM MQ variation planned |
+| Kafka | keyed records, ordering per partition, throttled commits, dead-letter topic, idempotent consumer (4.4) | [`messaging-kafka`](messaging-kafka/) | done; Streams and schema registry called out |
 | Security | OIDC/RHBK and AD/LDAP inbound, token propagation outbound, TLS registry, audit events (4.5) | `security-oidc`, `security-ldap` | planned |
 
 Per-POC deliverable checklist (design note 4.6):

@@ -26,6 +26,9 @@
     <module>config/bdi-config-observability</module>
     <module>config/bdi-config-scheduler</module>
     <module>config/bdi-config-flyway</module>
+    <module>config/bdi-config-messaging-amqp</module>
+    <module>config/bdi-config-jms</module>
+    <module>config/bdi-config-messaging-kafka</module>
     <module>starters/bdi-rest-jackson</module>
     <module>starters/bdi-jpa-postgresql</module>
     <module>starters/bdi-jpa-oracle</module>
@@ -33,6 +36,10 @@
     <module>starters/bdi-observability</module>
     <module>starters/bdi-scheduler</module>
     <module>starters/bdi-flyway-postgresql</module>
+    <module>starters/bdi-messaging-amqp</module>
+    <module>starters/bdi-jms-amqp</module>
+    <module>starters/bdi-messaging-kafka</module>
+    <module>starters/bdi-scheduler-local</module>
     <module>starters/bdi-test</module>
   </modules>
 </project>

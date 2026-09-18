@@ -1,0 +1,7 @@
+# Standardized defaults of bdi-config-jms (ordinal 100). The JMS connection follows the platform's amqp-* keys,
+# so in dev/test it reaches the AMQP connector's Dev Service broker and in an environment the rendered broker.
+quarkus:
+  qpid-jms:
+    url: "amqp://${amqp-host:localhost}:${amqp-port:5672}"
+    username: "${amqp-username:}"
+    password: "${amqp-password:}"

@@ -1,0 +1,10 @@
+# Standardized defaults of bdi-config-messaging-kafka (ordinal 100).
+mp:
+  messaging:
+    connector:
+      smallrye-kafka:
+        commit-strategy: throttled            # offsets committed as records are acked, in order, never past an unacked one
+        failure-strategy: dead-letter-queue   # a failed record goes to dead-letter-topic-<channel>, the partition keeps flowing
+        auto.offset.reset: earliest           # a new consumer group starts from the beginning of the retained log
+        graceful-shutdown: true
+        health-enabled: true

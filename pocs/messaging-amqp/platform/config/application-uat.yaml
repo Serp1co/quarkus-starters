@@ -1,0 +1,18 @@
+# Rendered by the platform for env=uat. The broker topology (addresses, queues, DLQ policy) is provisioned by AAP
+# through redhat.amq_broker; the application only names its channels.
+quarkus:
+  datasource:
+    jdbc:
+      url: jdbc:postgresql://127.0.0.1:5432/poc
+    username: poc
+amqp-host: 127.0.0.1
+amqp-port: 5672
+amqp-username: poc
+mp:
+  messaging:
+    incoming:
+      orders-in:
+        address: orders
+    outgoing:
+      orders-out:
+        address: orders

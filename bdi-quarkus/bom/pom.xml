@@ -21,7 +21,11 @@
 
   <!--
     Usage in an application POM:
-      <dependencyManagement><dependencies><dependency>
+      <properties>
+    <qpid-jms-extension.version>2.12.0</qpid-jms-extension.version>
+  </properties>
+
+  <dependencyManagement><dependencies><dependency>
         <groupId>it.bancaditalia.quarkus</groupId><artifactId>bdi-quarkus-bom</artifactId>
         <version>...</version><type>pom</type><scope>import</scope>
       </dependency></dependencies></dependencyManagement>
@@ -108,8 +112,49 @@
       </dependency>
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-messaging-amqp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-jms</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-messaging-kafka</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-messaging-amqp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-jms-amqp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-messaging-kafka</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-scheduler-local</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-test</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <!-- Outside the RHBQ platform (amqphub / Quarkiverse): pinned here, tagged unsupported in the starter catalogue -->
+      <dependency>
+        <groupId>org.amqphub.quarkus</groupId>
+        <artifactId>quarkus-qpid-jms</artifactId>
+        <version>${qpid-jms-extension.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

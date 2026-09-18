@@ -1,0 +1,23 @@
+{
+  "keys": [
+    {"name": "orders.poison-prefix", "type": "String", "required": false, "default": "POISON", "secret": false, "owner": "application", "doc": "POC hook: an order whose reference starts with this prefix fails in the consumer, to show redelivery and the DLQ"},
+    {"name": "orders.relay-batch-size", "type": "int", "required": false, "default": "50", "secret": false, "owner": "application", "doc": "Outbox rows published per relay tick"},
+    {"name": "mp.messaging.outgoing.orders-out.address", "type": "String", "required": false, "default": "orders", "secret": false, "owner": "platform", "doc": "AMQP address the outbox relay publishes order events to"},
+    {"name": "mp.messaging.incoming.orders-in.address", "type": "String", "required": false, "default": "orders", "secret": false, "owner": "platform", "doc": "AMQP address (queue) the order consumer reads; the same address for the POC's loop"},
+    {"name": "orders.jms.notifications-queue", "type": "String", "required": false, "default": "orders.notifications", "secret": false, "owner": "platform", "doc": "JMS queue of the notification variation"},
+    {"name": "quarkus.datasource.jdbc.url", "type": "String", "required": true, "default": null, "secret": false, "owner": "platform", "doc": "JDBC URL of the application database (Agroal pool)"},
+    {"name": "quarkus.datasource.username", "type": "String", "required": true, "default": null, "secret": false, "owner": "platform", "doc": "Database user of this application"},
+    {"name": "quarkus.datasource.password", "type": "String", "required": true, "default": null, "secret": true, "owner": "platform", "doc": "Database password, delivered from the vault"},
+    {"name": "quarkus.datasource.jdbc.max-size", "type": "int", "required": false, "default": "20", "secret": false, "owner": "platform", "doc": "Upper bound of the connection pool"},
+    {"name": "quarkus.transaction-manager.node-name", "type": "String", "required": false, "default": "quarkus", "secret": false, "owner": "platform", "doc": "XA recovery node name: unique per instance (EAP: the server name)"},
+    {"name": "quarkus.transaction-manager.object-store.directory", "type": "String", "required": false, "default": "ObjectStore", "secret": false, "owner": "platform", "doc": "XA transaction log: persistent, node-local, outside the release directory (EAP: standalone/data/tx-object-store)"},
+    {"name": "amqp-host", "type": "String", "required": true, "default": null, "secret": false, "owner": "platform", "doc": "AMQ Broker host (AMQP 1.0 acceptor)"},
+    {"name": "amqp-port", "type": "int", "required": false, "default": "5672", "secret": false, "owner": "platform", "doc": "AMQ Broker AMQP port"},
+    {"name": "amqp-username", "type": "String", "required": true, "default": null, "secret": false, "owner": "platform", "doc": "Broker user of this application"},
+    {"name": "amqp-password", "type": "String", "required": true, "default": null, "secret": true, "owner": "platform", "doc": "Broker password, delivered from the vault"},
+    {"name": "amqp-use-ssl", "type": "boolean", "required": false, "default": "false", "secret": false, "owner": "platform", "doc": "TLS to the broker (with the TLS registry, cookbook 12)"},
+    {"name": "quarkus.management.port", "type": "int", "required": false, "default": "9000", "secret": false, "owner": "platform", "doc": "Management port: health, conformance endpoint"},
+    {"name": "quarkus.log.level", "type": "String", "required": false, "default": "INFO", "secret": false, "owner": "platform", "doc": "Root log level"},
+    {"name": "quarkus.http.port", "type": "int", "required": false, "default": "8080", "secret": false, "owner": "platform", "doc": "API port, the load balancer target"}
+  ]
+}

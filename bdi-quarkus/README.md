@@ -14,6 +14,9 @@ bdi-quarkus/
   config/bdi-config-observability   defaults for logging/management, the /q/platform conformance endpoint, contract assembly
   config/bdi-config-scheduler  Quartz clustered on the application database, contract keys of the timers
   config/bdi-config-flyway     migrate at start, Hibernate validate (ordinal 110 over bdi-config-jpa)
+  config/bdi-config-messaging-amqp   MDB-like consumer defaults, broker keys
+  config/bdi-config-jms        JMS over AMQP on the same broker keys
+  config/bdi-config-messaging-kafka  commit and failure strategies, cluster keys
   starters/bdi-*               empty jars whose dependency set is the point
 ```
 
@@ -28,6 +31,10 @@ bdi-quarkus/
 | `bdi-observability` | `quarkus-smallrye-health`, `quarkus-logging-json`, `platform-contract` | `bdi-config-observability` | supported |
 | `bdi-scheduler` | `quarkus-quartz` (clustered JDBC store on the application database) | `bdi-config-scheduler` | supported |
 | `bdi-flyway-postgresql` | `quarkus-flyway`, `quarkus-flyway-postgresql` | `bdi-config-flyway` (ordinal 110: Hibernate validates, never generates) | supported |
+| `bdi-messaging-amqp` | `quarkus-messaging-amqp` (Reactive Messaging over AMQP 1.0, AMQ Broker) | `bdi-config-messaging-amqp`: durable, redelivery on failure, reconnection; `amqp-*` contract keys | supported |
+| `bdi-jms-amqp` | `quarkus-qpid-jms` 2.12.0 (amqphub) | `bdi-config-jms`: the JMS connection follows the `amqp-*` keys | **not in the RHBQ platform, unsupported** |
+| `bdi-messaging-kafka` | `quarkus-messaging-kafka` | `bdi-config-messaging-kafka`: throttled commits, dead-letter topic, earliest; `kafka.*` contract keys | supported |
+| `bdi-scheduler-local` | `quarkus-scheduler` (in-memory, per instance) | | supported |
 | `bdi-test` (test scope) | `quarkus-junit`, `rest-assured` | | supported |
 
 An application declares capabilities, and picks the variation its estate needs:
@@ -50,7 +57,7 @@ confirmed against the RHBQ supported-configurations list, design note §9):
 |---|---|---|
 | Relational data | PostgreSQL, Oracle, Db2 | `bdi-jpa-postgresql`, `bdi-jpa-oracle`, `bdi-jpa-db2` (done); `bdi-flyway-postgresql` (done), `bdi-flyway-oracle`, Db2 to check |
 | Timers | clustered Quartz on the database | `bdi-scheduler` (done) |
-| Queues and topics | AMQ Broker over AMQP 1.0 (Reactive Messaging or JMS), IBM MQ (JMS, resource adapter: Quarkiverse, unsupported), Kafka / AMQ Streams | `bdi-messaging-amqp`, `bdi-jms-amqp`, `bdi-jms-ibmmq`, `bdi-messaging-kafka`, `bdi-kafka-streams` |
+| Queues and topics | AMQ Broker over AMQP 1.0 (Reactive Messaging or JMS), IBM MQ (JMS, resource adapter: Quarkiverse, unsupported), Kafka / AMQ Streams | `bdi-messaging-amqp`, `bdi-jms-amqp`, `bdi-messaging-kafka` (done); `bdi-jms-ibmmq`, `bdi-kafka-streams` planned |
 | Inbound identity | Red Hat build of Keycloak (OIDC), Active Directory / LDAP (Elytron) | `bdi-security-oidc`, `bdi-security-ldap` |
 | Secrets | CyberArk, HashiCorp Vault, rendered file (AAP) | `bdi-secrets-cyberark`, `bdi-secrets-vault`, the file path of `bdi-config-core` |
 | SOAP | Quarkus CXF | `bdi-soap-cxf` |

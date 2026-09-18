@@ -56,13 +56,15 @@ cannot reach the Red Hat repository. Never for a deliverable: the support contra
 ./mvnw quarkus:dev -pl pocs/a-jakarta-classic   # dev mode: live reload, continuous testing, Dev UI, Dev Services
 ```
 
-Tests use **Dev Services**: Quarkus starts PostgreSQL in a container (Podman or Docker) with nothing to
-configure. Without a container runtime, point the tests at any PostgreSQL through the same keys the
-platform renders in production, and Dev Services stay out of the way:
+Tests use **Dev Services**: Quarkus starts PostgreSQL, AMQ Broker and Kafka in containers (Podman or
+Docker) with nothing to configure. Without a container runtime, point the tests at your own services
+through the same keys the platform renders in production, and Dev Services stay out of the way:
 
 ```bash
 export QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://127.0.0.1:5432/poc
 export QUARKUS_DATASOURCE_USERNAME=poc QUARKUS_DATASOURCE_PASSWORD=poc
+export AMQP_HOST=127.0.0.1 AMQP_PORT=5672 AMQP_USERNAME=poc AMQP_PASSWORD=poc   # pocs/messaging-amqp
+export KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092                                  # pocs/messaging-kafka
 ./mvnw verify
 ```
 
@@ -96,10 +98,12 @@ export QUARKUS_DATASOURCE_USERNAME=poc QUARKUS_DATASOURCE_PASSWORD=poc
 | Item | State |
 |---|---|
 | Container project (parent POM, wrapper, CI, layout) | done |
-| `bdi-quarkus`: BOM, 8 starters, 6 config modules | done; messaging, security, secrets, SOAP and Spring variations planned with their POCs |
+| `bdi-quarkus`: BOM, 12 starters, 9 config modules | done; IBM MQ, security, secrets, SOAP and Spring variations planned with their POCs |
 | Concept `platform-contract` | done, unit-tested |
 | POC A, Jakarta classic | on the starters, YAML only, zero non-profile config lines; tests, contract, conformance endpoint, stage-1 walkthrough, measured numbers |
 | POC B, EJB-heavy | done: timers on clustered Quartz, REQUIRES_NEW isolation, async, XA keys, Flyway; two-instance demo |
+| POC messaging (AMQP) | done: outbox, idempotent consumer, redelivery to DLQ, JMS variation on the same broker |
+| POC messaging (Kafka) | done: keyed records, ordering per partition, dead-letter topic, idempotent consumer |
 | Ansible deploy role and playbooks | proposal that runs in the sandbox (render, validate, install, rollback, verify); systemd, Quadlet and OpenShift variants to exercise on real hosts |
 | Cookbook 5 (JAX-RS / CDI / JPA from EAP) | draft |
 | Other POCs and cookbooks | planned, see the indexes |

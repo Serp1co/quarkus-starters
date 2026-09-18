@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it.bancaditalia.quarkus</groupId>
+    <artifactId>quarkus-starters</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>bdi-messaging-amqp</artifactId>
+  <name>Starter: bdi-messaging-amqp</name>
+  <description>Queues and topics through Reactive Messaging over AMQP 1.0 (AMQ Broker), configured by bdi-config-messaging-amqp. The default replacement of MDBs (design note 4.3): @Incoming/@Outgoing channels, connector and address owned by the platform.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-messaging-amqp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>it.bancaditalia.quarkus</groupId>
+      <artifactId>bdi-config-messaging-amqp</artifactId>
+    </dependency>
+  </dependencies>
+</project>

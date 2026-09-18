@@ -12,8 +12,8 @@ has been run on at least stage 1 of the target ladder, so that every claim in it
 | 5 | JAX-RS / CDI / JPA from EAP | POC A | [05-jaxrs-cdi-jpa-from-eap.md](05-jaxrs-cdi-jpa-from-eap.md) |
 | 6 | EJB / MDB / timers / XA recovery | POC B | draft in the [POC B README](../../pocs/b-ejb-heavy/README.md) (MDB with the messaging POC) |
 | 7 | Remote EJB replacement (REST, gRPC, façade pattern, tx and identity propagation) | Remote EJB POC | planned |
-| 8 | Queues/topics: Reactive Messaging vs JMS over AMQP 1.0; outbox and idempotency | Messaging POC | planned |
-| 9 | Kafka: messaging vs Streams vs client; schema registry | Kafka POC | planned |
+| 8 | Queues/topics: Reactive Messaging vs JMS over AMQP 1.0; outbox and idempotency | Messaging POC | draft in the [messaging-amqp README](../../pocs/messaging-amqp/README.md) |
+| 9 | Kafka: messaging vs Streams vs client; schema registry | Kafka POC | draft in the [messaging-kafka README](../../pocs/messaging-kafka/README.md) |
 | 10 | SOAP with Quarkus CXF | POC C | planned |
 | 11 | Spring compat vs rewrite | POC D | planned |
 | 12 | Security: OIDC/RHBK, Elytron LDAP for legacy, mTLS via TLS registry, path policies, audit events | Security POC | planned |

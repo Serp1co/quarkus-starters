@@ -1,0 +1,10 @@
+# Standardized defaults of bdi-config-messaging-amqp (ordinal 100).
+amqp-reconnect-attempts: 100
+amqp-reconnect-interval: 10
+mp:
+  messaging:
+    connector:
+      smallrye-amqp:
+        durable: true                     # queues survive the broker restart, as EAP JMS queues did
+        failure-strategy: modified-failed # a failed message is redelivered by the broker (EAP: MDB rollback); after max-delivery-attempts it lands in the DLQ
+        health-enabled: true              # readiness fails when the broker is unreachable: the LB gate sees it

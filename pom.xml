@@ -21,6 +21,8 @@
     <module>bdi-quarkus</module>
     <module>pocs/a-jakarta-classic</module>
     <module>pocs/b-ejb-heavy</module>
+    <module>pocs/messaging-amqp</module>
+    <module>pocs/messaging-kafka</module>
   </modules>
 
   <properties>
@@ -33,6 +35,8 @@
     <quarkus.platform.version>3.33.1.redhat-00006</quarkus.platform.version>
     <!-- Upstream release the RHBQ build is based on. Used only by the 'community' escape hatch below. -->
     <quarkus.upstream.version>3.33.1</quarkus.upstream.version>
+    <!-- Extensions outside the platform: their own release cadence, no RHBQ support. Re-check on every stream bump. -->
+    <qpid-jms-extension.version>2.12.0</qpid-jms-extension.version>
 
     <!-- JDK baseline: Red Hat build of OpenJDK 21. RHBQ 3.33 supports OpenJDK 17, 21 and 25. -->
     <maven.compiler.release>21</maven.compiler.release>
@@ -133,8 +137,49 @@
       </dependency>
       <dependency>
         <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-messaging-amqp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-jms</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-config-messaging-kafka</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-messaging-amqp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-jms-amqp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-messaging-kafka</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
+        <artifactId>bdi-scheduler-local</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>it.bancaditalia.quarkus</groupId>
         <artifactId>bdi-test</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <!-- Outside the RHBQ platform (amqphub / Quarkiverse): pinned here, tagged unsupported in the starter catalogue -->
+      <dependency>
+        <groupId>org.amqphub.quarkus</groupId>
+        <artifactId>quarkus-qpid-jms</artifactId>
+        <version>${qpid-jms-extension.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

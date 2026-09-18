@@ -1,0 +1,22 @@
+# Rendered by the platform for env=uat. Topics, ACLs and the consumer-group naming are AAP's (design note 4.4);
+# SASL/OAUTHBEARER against RHBK and TLS come with the security cookbook.
+quarkus:
+  datasource:
+    jdbc:
+      url: jdbc:postgresql://127.0.0.1:5432/poc
+    username: poc
+kafka:
+  bootstrap:
+    servers: 127.0.0.1:9092
+mp:
+  messaging:
+    outgoing:
+      payments-out:
+        topic: payments
+    incoming:
+      payments-in:
+        topic: payments
+        group.id: uat-poc-messaging-kafka-balances
+      payments-dlq:
+        topic: dead-letter-topic-payments-in
+        group.id: uat-poc-messaging-kafka-dlq

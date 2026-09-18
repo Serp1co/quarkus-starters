@@ -1,0 +1,48 @@
+# =============================================================================
+# POC messaging-kafka - developer-owned configuration: inner loop only.
+# Topics, group id and the dead-letter topic are platform keys; the Kafka
+# connector is attached to the channels automatically. Dev Services start a
+# Kafka broker in dev and test and pre-create the topics; against a broker
+# where topics appear on first use, the dead-letter consumer refreshes its
+# metadata quickly (in an environment AAP provisions the topics upfront).
+# =============================================================================
+"%dev":
+  quarkus:
+    kafka:
+      devservices:
+        topic-partitions:
+          payments: 3
+          dead-letter-topic-payments-in: 1
+  mp:
+    messaging:
+      outgoing:
+        payments-out:
+          topic: payments
+      incoming:
+        payments-in:
+          topic: payments
+          group.id: poc-messaging-kafka-balances
+        payments-dlq:
+          topic: dead-letter-topic-payments-in
+          group.id: poc-messaging-kafka-dlq
+          metadata.max.age.ms: 2000
+"%test":
+  quarkus:
+    kafka:
+      devservices:
+        topic-partitions:
+          payments: 3
+          dead-letter-topic-payments-in: 1
+  mp:
+    messaging:
+      outgoing:
+        payments-out:
+          topic: payments
+      incoming:
+        payments-in:
+          topic: payments
+          group.id: poc-messaging-kafka-balances
+        payments-dlq:
+          topic: dead-letter-topic-payments-in
+          group.id: poc-messaging-kafka-dlq
+          metadata.max.age.ms: 2000
